@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaleTrade - Вход</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="logos.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <img src="logo-small.svg" alt="SaleTrade" width="120" height="36">
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="user-info">
+                    <span>Криптобиржа</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Login Form -->
+            <div class="form-container" id="login-form">
+                <div class="form-header">
+                    <h1>Вход в систему</h1>
+                    <p>Войдите в свой аккаунт для доступа к торговле</p>
+                </div>
+                
+                <form class="auth-form" id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email или имя пользователя</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="text" id="loginEmail" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="loginPassword">Пароль</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="loginPassword" name="password" required>
+                            <button type="button" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span>Войти в аккаунт</span>
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>Нет аккаунта? <a href="#" class="switch-form" data-target="register">Создать аккаунт</a></p>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="form-container hidden" id="register-form">
+                <div class="form-header">
+                    <h1>Регистрация</h1>
+                    <p>Создайте новый аккаунт для торговли</p>
+                </div>
+                
+                <form class="auth-form" id="registerForm">
+                    <div class="form-group">
+                        <label for="username">Имя пользователя</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-at"></i>
+                            <input type="text" id="username" name="username" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="registerEmail" name="email" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="registerPassword">Пароль</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="registerPassword" name="password" required>
+                            <button type="button" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Подтвердите пароль</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required>
+                            <button type="button" class="password-toggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <span>Создать аккаунт</span>
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>Уже есть аккаунт? <a href="#" class="switch-form" data-target="login">Войти в аккаунт</a></p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay hidden" id="loadingOverlay">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+        </div>
+
+        <!-- Notification Container -->
+        <div class="notification-container" id="notificationContainer"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

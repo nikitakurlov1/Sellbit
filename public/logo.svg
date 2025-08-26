@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Круг с буквой S и стрелкой -->
+  <g fill="#2a8cff">
+    <circle cx="200" cy="150" r="80" stroke="#2a8cff" stroke-width="20" fill="none"/>
+    <text x="200" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="80" fill="#2a8cff">S</text>
+    <polygon points="260,90 310,70 290,120" fill="#2a8cff"/>
+  </g>
+
+  <!-- Текст SaleTrade -->
+  <text x="200" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#2a8cff">
+    SaleTrade
+  </text>
+</svg>
