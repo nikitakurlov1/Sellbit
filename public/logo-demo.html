@@ -2,8 +2,13 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Демо логотипов криптовалют | SaleBit</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Демо новых логотипов криптовалют | SellBit</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="logos.js"></script>
@@ -64,14 +69,7 @@
             border-radius: 15px;
             padding: 1.5rem;
             text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
             border: 2px solid transparent;
-        }
-
-        .logo-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
         }
 
         .logo-container {
@@ -129,37 +127,119 @@
             color: #667eea;
             text-decoration: none;
             font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .back-link:hover {
-            color: #764ba2;
         }
 
         .back-link i {
             margin-right: 0.5rem;
         }
+
+        .new-logos-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #eee;
+        }
+
+        .new-logos-section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .new-logos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .new-logo-item {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            border: 2px solid #dee2e6;
+        }
+
+        .new-logo-item h3 {
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+
+        .new-logo-container {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .new-logo-container img {
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
     <div class="container">
         <div class="header">
-            <h1>Логотипы криптовалют</h1>
-            <p>SVG логотипы для всех популярных криптовалют</p>
+            <h1>🎨 Новые логотипы криптовалют</h1>
+            <p>Обновленные SVG логотипы для SellBit</p>
         </div>
 
         <div class="content">
-            <a href="/" class="back-link">
+            <a href="coin.html" class="back-link">
                 <i class="fas fa-arrow-left"></i>
-                Назад к главной
+                Вернуться к управлению монетами
             </a>
 
-            <div class="logo-grid" id="logoGrid">
-                <!-- Логотипы будут добавлены через JavaScript -->
+            <div class="new-logos-section">
+                <h2>🆕 Обновленные логотипы</h2>
+                <div class="new-logos-grid">
+                    <div class="new-logo-item">
+                        <h3>Bitcoin (BTC)</h3>
+                        <div class="new-logo-container">
+                            <img src="/logos/bitcoin.svg" alt="Bitcoin" width="64" height="64">
+                        </div>
+                        <p>Новый оранжевый логотип с символом ₿</p>
+                    </div>
+
+                    <div class="new-logo-item">
+                        <h3>Ethereum (ETH)</h3>
+                        <div class="new-logo-container">
+                            <img src="/logos/ethereum.svg" alt="Ethereum" width="64" height="64">
+                        </div>
+                        <p>Классический синий логотип с ромбовидным символом</p>
+                    </div>
+
+                    <div class="new-logo-item">
+                        <h3>XRP (XRP)</h3>
+                        <div class="new-logo-container">
+                            <img src="/logos/ripple.svg" alt="XRP" width="64" height="64">
+                        </div>
+                        <p>Темный логотип с белым символом XRP</p>
+                    </div>
+
+                    <div class="new-logo-item">
+                        <h3>BNB (BNB)</h3>
+                        <div class="new-logo-container">
+                            <img src="/logos/binancecoin.svg" alt="BNB" width="64" height="64">
+                        </div>
+                        <p>Желтый логотип Binance Coin</p>
+                    </div>
+
+                    <div class="new-logo-item">
+                        <h3>Dogecoin (DOGE)</h3>
+                        <div class="new-logo-container">
+                            <img src="/logos/dogecoin.svg" alt="Dogecoin" width="64" height="64">
+                        </div>
+                        <p>Золотистый логотип с символом D</p>
+                    </div>
+                </div>
             </div>
 
             <div class="sizes-demo">
-                <h2>Размеры логотипов</h2>
+                <h2>📏 Размеры логотипов</h2>
                 <div class="size-examples">
                     <div class="size-example">
                         <div class="size-label">16px</div>
@@ -187,55 +267,14 @@
     </div>
 
     <script>
-        // Список всех криптовалют
+        // Список всех монет с новыми логотипами
         const allCoins = [
             { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC' },
             { id: 'ethereum', name: 'Ethereum', symbol: 'ETH' },
-            { id: 'binancecoin', name: 'BNB', symbol: 'BNB' },
-            { id: 'solana', name: 'Solana', symbol: 'SOL' },
-            { id: 'cardano', name: 'Cardano', symbol: 'ADA' },
             { id: 'ripple', name: 'XRP', symbol: 'XRP' },
-            { id: 'polkadot', name: 'Polkadot', symbol: 'DOT' },
-            { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' },
-            { id: 'avalanche-2', name: 'Avalanche', symbol: 'AVAX' },
-            { id: 'chainlink', name: 'Chainlink', symbol: 'LINK' },
-            { id: 'polygon', name: 'Polygon', symbol: 'MATIC' },
-            { id: 'uniswap', name: 'Uniswap', symbol: 'UNI' },
-            { id: 'litecoin', name: 'Litecoin', symbol: 'LTC' },
-            { id: 'stellar', name: 'Stellar', symbol: 'XLM' },
-            { id: 'cosmos', name: 'Cosmos', symbol: 'ATOM' },
-            { id: 'monero', name: 'Monero', symbol: 'XMR' },
-            { id: 'algorand', name: 'Algorand', symbol: 'ALGO' },
-            { id: 'vechain', name: 'VeChain', symbol: 'VET' },
-            { id: 'filecoin', name: 'Filecoin', symbol: 'FIL' },
-            { id: 'internet-computer', name: 'Internet Computer', symbol: 'ICP' }
+            { id: 'binancecoin', name: 'BNB', symbol: 'BNB' },
+            { id: 'dogecoin', name: 'Dogecoin', symbol: 'DOGE' }
         ];
-
-        // Функция для создания элемента логотипа
-        function createLogoItem(coin) {
-            const item = document.createElement('div');
-            item.className = 'logo-item';
-            
-            const logoContainer = document.createElement('div');
-            logoContainer.className = 'logo-container';
-            
-            const logo = CryptoLogos.createCoinLogo(coin.id, 48, 'coin-logo');
-            logoContainer.appendChild(logo);
-            
-            const coinName = document.createElement('div');
-            coinName.className = 'coin-name';
-            coinName.textContent = coin.name;
-            
-            const coinId = document.createElement('div');
-            coinId.className = 'coin-id';
-            coinId.textContent = coin.id;
-            
-            item.appendChild(logoContainer);
-            item.appendChild(coinName);
-            item.appendChild(coinId);
-            
-            return item;
-        }
 
         // Функция для демонстрации размеров
         function createSizeDemo() {
@@ -251,14 +290,6 @@
 
         // Инициализация страницы
         document.addEventListener('DOMContentLoaded', function() {
-            const logoGrid = document.getElementById('logoGrid');
-            
-            // Добавляем все логотипы
-            allCoins.forEach(coin => {
-                const logoItem = createLogoItem(coin);
-                logoGrid.appendChild(logoItem);
-            });
-            
             // Создаем демонстрацию размеров
             createSizeDemo();
         });

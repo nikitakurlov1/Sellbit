@@ -9,7 +9,7 @@ npm start
 
 ### 2. Вход в систему
 - **URL:** http://localhost:3000
-- **Email:** admin@salebit.com
+- **Email:** admin@sellbit.com
 - **Пароль:** Zxcv1236
 
 ### 3. Создание новых администраторов
@@ -18,7 +18,7 @@ npm start
 2. Нажмите **"Добавить администратора"**
 3. Заполните форму:
    - Имя пользователя: `adminNK`
-   - Email: `adminNK@salebit.com`
+   - Email: `adminNK@sellbit.com`
    - Пароль: `SecurePass123`
    - Роль: `Админ` (или другую по необходимости)
 
@@ -75,7 +75,7 @@ Content-Type: application/json
 
 {
   "username": "newadmin",
-  "email": "newadmin@salebit.com",
+  "email": "newadmin@sellbit.com",
   "password": "password123",
   "roleId": "role_admin"
 }

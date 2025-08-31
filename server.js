@@ -67,7 +67,12 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+
+// Ngrok browser warning skip middleware
+app.use((req, res, next) => {
+  res.setHeader("ngrok-skip-browser-warning", "true");
+  next();
+});
 
 // Add caching for API responses
 const cache = new Map();
@@ -305,53 +310,7 @@ const initializeRoles = async () => {
   }
 };
 
-// Create admin account on server start
-const createAdminAccount = async () => {
-  try {
-    const adminExists = await db.getUserByUsername('AdminNKcoin');
-    if (!adminExists) {
-      const hashedPassword = await bcrypt.hash('Zxcv1236', 12);
-      const adminUser = {
-        id: 'admin_' + Date.now().toString(),
-        username: 'AdminNKcoin',
-        email: 'admin@salebit.com',
-        password: hashedPassword,
-        createdAt: new Date().toISOString()
-      };
-      
-      await db.createUser(adminUser);
-      
-      const adminAccount = {
-        id: 'admin_' + Date.now().toString() + '_acc',
-        userId: adminUser.id,
-        balance: {
-          USD: 0,
-          BTC: 0,
-          ETH: 0
-        },
-        createdAt: new Date().toISOString()
-      };
-      
-      await db.createAccount(adminAccount);
-      
-      // Assign admin role to the user
-      const adminRole = await db.getRoleByName('Админ');
-      if (adminRole) {
-        await db.assignRoleToUser({
-          id: 'admin_role_' + Date.now().toString(),
-          userId: adminUser.id,
-          roleId: adminRole.id,
-          assignedBy: adminUser.id,
-          assignedAt: new Date().toISOString()
-        });
-      }
-      
-      console.log('Admin account created: AdminNKcoin');
-    }
-  } catch (error) {
-    console.error('Error creating admin account:', error);
-  }
-};
+
 
 // Fetch coin prices from CoinGecko and save to database
 const fetchCoinPrices = async () => {
@@ -472,19 +431,19 @@ const getMarketVolatility = () => {
   const now = new Date();
   const hour = now.getHours();
   
-  // Higher volatility during market hours (9-17) and lower during off-hours
-  let baseVolatility = 1.0;
+  // Минимальная волатильность для плавного роста
+  let baseVolatility = 0.3; // Значительно уменьшена базовая волатильность
   
   if (hour >= 9 && hour <= 17) {
-    baseVolatility = 1.5; // Market hours - higher volatility
+    baseVolatility = 0.4; // Market hours - немного выше
   } else if (hour >= 22 || hour <= 6) {
-    baseVolatility = 0.7; // Late night - lower volatility
+    baseVolatility = 0.2; // Late night - еще ниже
   }
   
   // Add weekend effect
   const dayOfWeek = now.getDay();
   if (dayOfWeek === 0 || dayOfWeek === 6) {
-    baseVolatility *= 0.8; // Weekend - lower volatility
+    baseVolatility *= 0.7; // Weekend - еще меньше волатильности
   }
   
   return baseVolatility;
@@ -492,33 +451,31 @@ const getMarketVolatility = () => {
 
 const generatePricePattern = (progress, volatilityMultiplier) => {
   const marketVolatility = getMarketVolatility();
-  const adjustedVolatility = volatilityMultiplier * marketVolatility;
+  const adjustedVolatility = Math.min(volatilityMultiplier * marketVolatility, 0.01); // Максимум 1% колебания
   
-  // Multiple wave patterns for more realistic movement
-  const wave1 = Math.sin(progress * Math.PI * 12) * 0.015 * adjustedVolatility; // Very high frequency
-  const wave2 = Math.sin(progress * Math.PI * 6) * 0.025 * adjustedVolatility;  // High frequency
-  const wave3 = Math.sin(progress * Math.PI * 3) * 0.04 * adjustedVolatility;   // Medium frequency
-  const wave4 = Math.sin(progress * Math.PI * 1.5) * 0.06 * adjustedVolatility; // Low frequency
-  const wave5 = Math.sin(progress * Math.PI * 0.8) * 0.08 * adjustedVolatility; // Very low frequency
+  // Минимальные волновые паттерны для плавного роста
+  const wave1 = Math.sin(progress * Math.PI * 8) * 0.002 * adjustedVolatility; // Очень низкая частота
+  const wave2 = Math.sin(progress * Math.PI * 4) * 0.003 * adjustedVolatility;  // Низкая частота
+  const wave3 = Math.sin(progress * Math.PI * 2) * 0.004 * adjustedVolatility;  // Средняя частота
   
-  // Random noise with different intensities
-  const microNoise = (Math.random() - 0.5) * 0.02 * adjustedVolatility;
-  const macroNoise = (Math.random() - 0.5) * 0.04 * adjustedVolatility;
+  // Минимальный случайный шум
+  const microNoise = (Math.random() - 0.5) * 0.003 * adjustedVolatility;
+  const macroNoise = (Math.random() - 0.5) * 0.005 * adjustedVolatility;
   
-  // Occasional spikes (market events)
+  // Очень редкие и слабые всплески
   const spikeChance = Math.random();
   let spike = 0;
-  if (spikeChance < 0.03) { // 3% chance of positive spike
-    spike = Math.random() * 0.15 * adjustedVolatility;
-  } else if (spikeChance < 0.06) { // 3% chance of negative spike
-    spike = -Math.random() * 0.12 * adjustedVolatility;
+  if (spikeChance < 0.01) { // 1% шанс положительного всплеска
+    spike = Math.random() * 0.008 * adjustedVolatility;
+  } else if (spikeChance < 0.02) { // 1% шанс отрицательного всплеска
+    spike = -Math.random() * 0.006 * adjustedVolatility;
   }
   
-  // Trend acceleration/deceleration
-  const trendModifier = Math.sin(progress * Math.PI * 2) * 0.05;
+  // Минимальная модификация тренда
+  const trendModifier = Math.sin(progress * Math.PI * 1.5) * 0.002;
   
   return {
-    waves: wave1 + wave2 + wave3 + wave4 + wave5,
+    waves: wave1 + wave2 + wave3,
     noise: microNoise + macroNoise,
     spike,
     trendModifier,
@@ -620,9 +577,9 @@ const updateSimulationPrice = async (coinId) => {
       // Add realistic price fluctuations using advanced patterns
       const progress = Math.min(elapsedMinutes / simulation.durationMinutes, 1); // Cap at 1
       
-      // Calculate volatility based on price range (higher volatility for larger price changes)
+      // Calculate volatility based on price range (minimal volatility for smooth growth)
       const priceRange = Math.abs(simulation.targetPrice - simulation.startPrice);
-      const volatilityMultiplier = Math.min(1 + (priceRange / simulation.startPrice) * 2, 3); // Max 3x volatility
+      const volatilityMultiplier = Math.min(0.5 + (priceRange / simulation.startPrice) * 0.3, 1.2); // Max 1.2x volatility
       
       // Generate advanced price pattern
       const pattern = generatePricePattern(progress, volatilityMultiplier);
@@ -682,9 +639,9 @@ const updateSimulationPrice = async (coinId) => {
       const fallProgress = Math.min(fallElapsedMinutes / fallDuration, 1); // Cap at 1
       const baseFallPrice = simulation.fallStartPrice + (realPrice - simulation.fallStartPrice) * fallProgress;
       
-      // Add small fluctuations during fallback
-      const fallWave = Math.sin(fallProgress * Math.PI * 4) * 0.01;
-      const fallNoise = (Math.random() - 0.5) * 0.015;
+      // Add minimal fluctuations during fallback
+      const fallWave = Math.sin(fallProgress * Math.PI * 2) * 0.002;
+      const fallNoise = (Math.random() - 0.5) * 0.003;
       const fallFluctuation = 1 + fallWave + fallNoise;
       
       newPrice = baseFallPrice * fallFluctuation;
@@ -710,8 +667,10 @@ const updateSimulationPrice = async (coinId) => {
     
     // Update coin price in database
     console.log('Updating coin in database:', coinId, newPrice);
+    const priceChangePercent = ((newPrice - simulation.startPrice) / simulation.startPrice) * 100;
     await db.updateCoin(coinId, {
       price: newPrice,
+      priceChange: priceChangePercent,
       updatedAt: new Date().toISOString()
     });
     
@@ -780,6 +739,7 @@ const stopSimulation = async (coinId) => {
     if (realPrice > 0) {
       await db.updateCoin(coinId, {
         price: realPrice,
+        priceChange: 0, // Reset price change when simulation stops
         updatedAt: new Date().toISOString()
       });
       
@@ -812,7 +772,7 @@ const validateLogin = [
 
 // Routes
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'splash.html'));
 });
 
 app.get('/coin.html', (req, res) => {
@@ -823,9 +783,7 @@ app.get('/crmcoindetal.html', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'crmcoindetal.html'));
 });
 
-app.get('/admin.html', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
-});
+
 
 // Registration endpoint
 app.post('/api/register', validateRegistration, async (req, res) => {
@@ -851,13 +809,7 @@ app.post('/api/register', validateRegistration, async (req, res) => {
       });
     }
 
-    // Prevent registration of admin username
-    if (username === 'AdminNKcoin') {
-      return res.status(400).json({
-        success: false,
-        errors: ['Это имя пользователя зарезервировано для администратора']
-      });
-    }
+
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -889,6 +841,26 @@ app.post('/api/register', validateRegistration, async (req, res) => {
     };
 
     await db.createAccount(newAccount);
+
+    // Assign default user role
+    try {
+      const userRole = await db.getRoleByName('Пользователь');
+      if (userRole) {
+        const userRoleAssignment = {
+          id: 'user_role_' + Date.now(),
+          userId: newUser.id,
+          roleId: userRole.id,
+          assignedBy: newUser.id, // Self-assigned for new users
+          assignedAt: new Date().toISOString()
+        };
+        
+        await db.assignRoleToUser(userRoleAssignment);
+        console.log(`Default user role assigned to ${newUser.username}`);
+      }
+    } catch (roleError) {
+      console.warn('Could not assign default role to new user:', roleError.message);
+      // Don't fail registration if role assignment fails
+    }
 
     // Generate JWT token
     const token = jwt.sign(
@@ -954,7 +926,7 @@ app.post('/api/login', async (req, res) => {
 
     // Get user roles
     const userRoles = await db.getUserRoles(user.id);
-    const roles = userRoles.map(role => role.name);
+    const roles = userRoles.map(role => role.roleName);
 
     // Generate JWT token
     const token = jwt.sign(
@@ -999,12 +971,7 @@ app.get('/api/users', checkPermission('users', 'read'), async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await db.getUserByEmail(decoded.email);
     
-    if (!user || user.username !== 'AdminNKcoin') {
-      return res.status(403).json({
-        success: false,
-        errors: ['Доступ запрещен']
-      });
-    }
+
 
     const users = await db.getAllUsers();
     const usersWithAccounts = [];
@@ -1047,12 +1014,7 @@ app.post('/api/users', checkPermission('users', 'write'), async (req, res) => {
     const decoded = jwt.verify(token, JWT_SECRET);
     const adminUser = await db.getUserByEmail(decoded.email);
     
-    if (!adminUser || adminUser.username !== 'AdminNKcoin') {
-      return res.status(403).json({
-        success: false,
-        errors: ['Доступ запрещен']
-      });
-    }
+
 
     const { username, email, password, status, notes } = req.body;
 
@@ -1130,12 +1092,7 @@ app.put('/api/users/:id', checkPermission('users', 'write'), async (req, res) =>
     const decoded = jwt.verify(token, JWT_SECRET);
     const adminUser = await db.getUserByEmail(decoded.email);
     
-    if (!adminUser || adminUser.username !== 'AdminNKcoin') {
-      return res.status(403).json({
-        success: false,
-        errors: ['Доступ запрещен']
-      });
-    }
+
 
     const userId = req.params.id;
     const { username, email, status, balance, notes } = req.body;
@@ -1213,23 +1170,11 @@ app.delete('/api/users/:id', checkPermission('users', 'delete'), async (req, res
     const decoded = jwt.verify(token, JWT_SECRET);
     const adminUser = await db.getUserByEmail(decoded.email);
     
-    if (!adminUser || adminUser.username !== 'AdminNKcoin') {
-      return res.status(403).json({
-        success: false,
-        errors: ['Доступ запрещен']
-      });
-    }
+
 
     const userId = req.params.id;
 
-    // Prevent admin deletion
-    const userToDelete = await db.getUserByEmail(decoded.email);
-    if (userToDelete && userToDelete.username === 'AdminNKcoin') {
-      return res.status(400).json({
-        success: false,
-        errors: ['Нельзя удалить администратора']
-      });
-    }
+
 
     await db.deleteUser(userId);
 
@@ -1268,8 +1213,8 @@ app.get('/api/account', async (req, res) => {
       });
     }
 
-    // Check if user is active (admin can access regardless of status)
-    if (user.username !== 'AdminNKcoin' && user.status !== 'active') {
+    // Check if user is active
+    if (user.status !== 'active') {
       return res.status(403).json({
         success: false,
         errors: ['Ваш аккаунт не активен. Обратитесь к администратору.']
@@ -1304,15 +1249,6 @@ app.get('/api/check-username/:username', async (req, res) => {
   try {
     const { username } = req.params;
     
-    // Admin username is always unavailable
-    if (username === 'AdminNKcoin') {
-      res.json({
-        success: true,
-        available: false
-      });
-      return;
-    }
-    
     const user = await db.getUserByUsername(username);
     res.json({
       success: true,
@@ -1332,15 +1268,6 @@ app.get('/api/check-email/:email', async (req, res) => {
   try {
     const { email } = req.params;
     
-    // Admin email is always unavailable
-    if (email === 'admin@salebit.com') {
-      res.json({
-        success: true,
-        available: false
-      });
-      return;
-    }
-    
     const user = await db.getUserByEmail(email);
     res.json({
       success: true,
@@ -1355,6 +1282,111 @@ app.get('/api/check-email/:email', async (req, res) => {
   }
 });
 
+// Get user balance
+app.get('/api/users/:id/balance', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId; // Используем userId из JWT токена
+
+    // Get account from database
+    const account = await db.getAccountByUserId(userId);
+    
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        errors: ['Аккаунт не найден']
+      });
+    }
+
+    res.json({
+      success: true,
+      balance: account.balance.USD || 0
+    });
+
+  } catch (error) {
+    console.error('Get balance error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении баланса']
+    });
+  }
+});
+
+// Update user balance
+app.put('/api/users/:id/balance', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.userId; // Используем userId из JWT токена
+    const { balance } = req.body;
+
+    if (balance === undefined || isNaN(parseFloat(balance))) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Неверное значение баланса']
+      });
+    }
+
+    // Get account from database
+    let account = await db.getAccountByUserId(userId);
+    
+    if (!account) {
+      // Create account if it doesn't exist
+      account = {
+        id: Date.now().toString() + '_acc',
+        userId: userId,
+        balance: {
+          USD: parseFloat(balance) || 0,
+          BTC: 0,
+          ETH: 0
+        },
+        createdAt: new Date().toISOString()
+      };
+      await db.createAccount(account);
+    } else {
+      // Update existing account
+      account.balance.USD = parseFloat(balance) || 0;
+      await db.createAccount(account); // This will update the existing account
+    }
+
+    console.log(`Updated balance for user ${userId} to: $${account.balance.USD}`);
+
+    // Broadcast balance update to all connected clients
+    broadcastUpdate('balanceUpdate', {
+      userId: userId,
+      balance: account.balance.USD
+    });
+
+    res.json({
+      success: true,
+      balance: account.balance.USD,
+      message: 'Баланс успешно обновлен'
+    });
+
+  } catch (error) {
+    console.error('Update balance error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при обновлении баланса']
+    });
+  }
+});
+
 // Coins API endpoints
 const validateCoin = [
   body('name').trim().isLength({ min: 2, max: 100 }).withMessage('Название должно содержать от 2 до 100 символов'),
@@ -1365,6 +1397,69 @@ const validateCoin = [
   body('category').isIn(['defi', 'gaming', 'infrastructure', 'meme']).withMessage('Неверная категория'),
   body('status').isIn(['active', 'inactive', 'pending']).withMessage('Неверный статус')
 ];
+
+// Get all coins (public endpoint - no authentication required)
+app.get('/api/coins/public', async (req, res) => {
+  try {
+    // This endpoint is public and doesn't require authentication
+    const coins = await db.getAllCoins();
+    
+    res.json({
+      success: true,
+      data: coins
+    });
+  } catch (error) {
+    console.error('Get public coins error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении списка криптовалют']
+    });
+  }
+});
+
+// Get all coins (for exchange - no permission check)
+app.get('/api/coins/exchange', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Get coins from database with real-time prices
+    const dbCoins = await db.getAllCoins();
+    
+    // Update in-memory array
+    coins = dbCoins;
+    
+    // Add additional data for better display
+    const enhancedCoins = dbCoins.map(coin => ({
+      ...coin,
+      marketCap: coin.price * (coin.circulatingSupply || 1000000), // Calculate market cap
+      volume24h: coin.volume24h || Math.random() * 1000000000, // Add volume if not present
+      priceChange: coin.priceChange || (Math.random() * 20 - 10), // Add price change if not present
+      priceChange24h: coin.priceChange24h || (Math.random() * 20 - 10), // Add 24h change
+      high24h: coin.high24h || coin.price * (1 + Math.random() * 0.1), // Add 24h high
+      low24h: coin.low24h || coin.price * (1 - Math.random() * 0.1), // Add 24h low
+    }));
+    
+    res.json({
+      success: true,
+      coins: enhancedCoins
+    });
+
+  } catch (error) {
+    console.error('Get coins error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении монет']
+    });
+  }
+});
 
 // Get all coins
 app.get('/api/coins', checkPermission('coins', 'read'), async (req, res) => {
@@ -1395,6 +1490,42 @@ app.get('/api/coins', checkPermission('coins', 'read'), async (req, res) => {
     res.status(500).json({
       success: false,
       errors: ['Ошибка сервера при получении монет']
+    });
+  }
+});
+
+// Get top 5 coins by price change
+app.get('/api/coins/top/gainers', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Get coins from database
+    const dbCoins = await db.getAllCoins();
+    
+    // Filter active coins and sort by price change (descending)
+    const topCoins = dbCoins
+      .filter(coin => coin.status === 'active')
+      .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
+      .slice(0, 5);
+    
+    res.json({
+      success: true,
+      coins: topCoins
+    });
+
+  } catch (error) {
+    console.error('Get top coins error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении топ монет']
     });
   }
 });
@@ -2044,6 +2175,74 @@ app.delete('/api/requisites/:id', checkPermission('requisites', 'delete'), async
   }
 });
 
+// Get requisites for exchange (public endpoint for exchange integration)
+app.get('/api/exchange/requisites', async (req, res) => {
+  try {
+    const { currency = 'USD' } = req.query;
+    
+    // Get all active requisites from CRM
+    const allRequisites = await db.getAllRequisites();
+    const activeRequisites = allRequisites.filter(r => r.status === 'active');
+    
+    // Group requisites by type and currency
+    const exchangeRequisites = {
+      currency: currency,
+      card: activeRequisites.filter(r => r.type === 'card'),
+      crypto: activeRequisites.filter(r => r.type === 'crypto'),
+      transfer: activeRequisites.filter(r => r.type === 'account'),
+      lastUpdated: new Date().toISOString()
+    };
+    
+    // Broadcast update to connected WebSocket clients
+    broadcastUpdate('requisites_updated', {
+      currency: currency,
+      requisites: exchangeRequisites
+    });
+    
+    res.json({
+      success: true,
+      data: exchangeRequisites
+    });
+
+  } catch (error) {
+    console.error('Get exchange requisites error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении реквизитов для биржи']
+    });
+  }
+});
+
+// WebSocket endpoint for real-time requisites updates
+app.get('/api/exchange/requisites/ws', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'Access-Control-Allow-Origin': '*'
+  });
+  
+  const sendUpdate = (data) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+  
+  // Send initial data
+  const initialData = {
+    type: 'requisites_initial',
+    timestamp: Date.now()
+  };
+  sendUpdate(initialData);
+  
+  // Keep connection alive
+  const interval = setInterval(() => {
+    res.write(': keepalive\n\n');
+  }, 30000);
+  
+  req.on('close', () => {
+    clearInterval(interval);
+  });
+});
+
 // ==================== ADMIN & ROLES API ENDPOINTS ====================
 
 // Get all roles
@@ -2084,313 +2283,13 @@ app.get('/api/roles', async (req, res) => {
   }
 });
 
-// Get all administrators and their roles
-app.get('/api/admin/users', async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        errors: ['Токен не предоставлен']
-      });
-    }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userWithRoles = await db.getUserWithRoles(decoded.userId);
-    
-    // Check if user has admin permissions
-    if (!userWithRoles.roles || !userWithRoles.roles.includes('Админ')) {
-      return res.status(403).json({
-        success: false,
-        errors: ['Недостаточно прав для просмотра администраторов']
-      });
-    }
 
-    const users = await db.getAllUsers();
-    const roles = await db.getAllRoles();
-    
-    // Get roles for each user
-    const usersWithRoles = await Promise.all(
-      users.map(async (user) => {
-        const userRoles = await db.getUserRoles(user.id);
-        return {
-          ...user,
-          roles: userRoles
-        };
-      })
-    );
-    
-    res.json({
-      success: true,
-      data: {
-        users: usersWithRoles,
-        roles: roles
-      }
-    });
 
-  } catch (error) {
-    console.error('Get admin users error:', error);
-    res.status(500).json({
-      success: false,
-      errors: ['Ошибка сервера при получении администраторов']
-    });
-  }
-});
 
-// Create new administrator account
-app.post('/api/admin/users', [
-  body('username').isLength({ min: 3 }).withMessage('Имя пользователя должно содержать минимум 3 символа'),
-  body('email').isEmail().withMessage('Некорректный email'),
-  body('password').isLength({ min: 6 }).withMessage('Пароль должен содержать минимум 6 символов'),
-  body('roleId').notEmpty().withMessage('Роль обязательна')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array().map(err => err.msg)
-      });
-    }
 
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        errors: ['Токен не предоставлен']
-      });
-    }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const adminUser = await db.getUserWithRoles(decoded.userId);
-    
-    // Check if user has admin permissions
-    if (!adminUser.roles || !adminUser.roles.includes('Админ')) {
-      return res.status(403).json({
-        success: false,
-        errors: ['Недостаточно прав для создания администраторов']
-      });
-    }
 
-    const { username, email, password, roleId, notes } = req.body;
-
-    // Check if user already exists
-    const existingUser = await db.getUserByEmail(email);
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        errors: ['Пользователь с таким email уже существует']
-      });
-    }
-
-    const existingUsername = await db.getUserByUsername(username);
-    if (existingUsername) {
-      return res.status(400).json({
-        success: false,
-        errors: ['Пользователь с таким именем уже существует']
-      });
-    }
-
-    // Check if role exists
-    const role = await db.getRoleById(roleId);
-    if (!role) {
-      return res.status(400).json({
-        success: false,
-        errors: ['Указанная роль не существует']
-      });
-    }
-
-    // Create new user
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const newUser = {
-      id: 'user_' + Date.now().toString(),
-      username,
-      email,
-      password: hashedPassword,
-      status: 'active',
-      notes: notes || null,
-      createdAt: new Date().toISOString()
-    };
-
-    await db.createUser(newUser);
-
-    // Create account for the user
-    const newAccount = {
-      id: 'account_' + Date.now().toString(),
-      userId: newUser.id,
-      balance: {
-        USD: 0,
-        BTC: 0,
-        ETH: 0
-      },
-      createdAt: new Date().toISOString()
-    };
-
-    await db.createAccount(newAccount);
-
-    // Assign role to user
-    await db.assignRoleToUser({
-      id: 'user_role_' + Date.now().toString(),
-      userId: newUser.id,
-      roleId: roleId,
-      assignedBy: adminUser.id,
-      assignedAt: new Date().toISOString()
-    });
-
-    res.json({
-      success: true,
-      message: 'Администратор успешно создан',
-      data: {
-        id: newUser.id,
-        username: newUser.username,
-        email: newUser.email,
-        role: role.name
-      }
-    });
-
-  } catch (error) {
-    console.error('Create admin user error:', error);
-    res.status(500).json({
-      success: false,
-      errors: ['Ошибка сервера при создании администратора']
-    });
-  }
-});
-
-// Update user role
-app.put('/api/admin/users/:userId/role', [
-  body('roleId').notEmpty().withMessage('Роль обязательна')
-], async (req, res) => {
-  try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        errors: errors.array().map(err => err.msg)
-      });
-    }
-
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        errors: ['Токен не предоставлен']
-      });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const adminUser = await db.getUserWithRoles(decoded.userId);
-    
-    // Check if user has admin permissions
-    if (!adminUser.roles || !adminUser.roles.includes('Админ')) {
-      return res.status(403).json({
-        success: false,
-        errors: ['Недостаточно прав для изменения ролей']
-      });
-    }
-
-    const { userId } = req.params;
-    const { roleId } = req.body;
-
-    // Check if user exists
-    const user = await db.getUserById(userId);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        errors: ['Пользователь не найден']
-      });
-    }
-
-    // Check if role exists
-    const role = await db.getRoleById(roleId);
-    if (!role) {
-      return res.status(400).json({
-        success: false,
-        errors: ['Указанная роль не существует']
-      });
-    }
-
-    // Remove existing roles
-    const existingRoles = await db.getUserRoles(userId);
-    for (const userRole of existingRoles) {
-      await db.removeRoleFromUser(userId, userRole.roleId);
-    }
-
-    // Assign new role
-    await db.assignRoleToUser({
-      id: 'user_role_' + Date.now().toString(),
-      userId: userId,
-      roleId: roleId,
-      assignedBy: adminUser.id,
-      assignedAt: new Date().toISOString()
-    });
-
-    res.json({
-      success: true,
-      message: 'Роль пользователя успешно обновлена',
-      data: {
-        userId: userId,
-        role: role.name
-      }
-    });
-
-  } catch (error) {
-    console.error('Update user role error:', error);
-    res.status(500).json({
-      success: false,
-      errors: ['Ошибка сервера при обновлении роли']
-    });
-  }
-});
-
-// Get activity log
-app.get('/api/admin/activity-log', async (req, res) => {
-  try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({
-        success: false,
-        errors: ['Токен не предоставлен']
-      });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userWithRoles = await db.getUserWithRoles(decoded.userId);
-    
-    // Check if user has admin permissions
-    if (!userWithRoles.roles || !userWithRoles.roles.includes('Админ')) {
-      return res.status(403).json({
-        success: false,
-        errors: ['Недостаточно прав для просмотра истории действий']
-      });
-    }
-
-    const { limit = 100, startDate, endDate, userId, action, entityType } = req.query;
-    
-    const filters = {
-      limit: parseInt(limit),
-      startDate,
-      endDate,
-      userId,
-      action,
-      entityType
-    };
-
-    const activityLog = await db.getActivityLog(filters);
-    
-    res.json({
-      success: true,
-      data: activityLog
-    });
-
-  } catch (error) {
-    console.error('Get activity log error:', error);
-    res.status(500).json({
-      success: false,
-      errors: ['Ошибка сервера при получении истории действий']
-    });
-  }
-});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -2474,6 +2373,239 @@ app.get('/api/user/permissions', async (req, res) => {
   }
 });
 
+// Portfolio Management API Endpoints
+
+// Get user's portfolio
+app.get('/api/users/:userId/portfolio', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.userId !== req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        errors: ['Доступ запрещен']
+      });
+    }
+
+    const portfolio = await db.getUserPortfolio(req.params.userId);
+    const portfolioValue = await db.getPortfolioValue(req.params.userId);
+
+    res.json({
+      success: true,
+      portfolio,
+      portfolioValue
+    });
+
+  } catch (error) {
+    console.error('Get portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении портфеля']
+    });
+  }
+});
+
+// Buy coins (add to portfolio)
+app.post('/api/users/:userId/portfolio/buy', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.userId !== req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        errors: ['Доступ запрещен']
+      });
+    }
+
+    const { coinSymbol, coinName, amount, price, fee = 0 } = req.body;
+
+    if (!coinSymbol || !coinName || !amount || !price) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Не все обязательные поля заполнены']
+      });
+    }
+
+    // Check if user has enough balance
+    const account = await db.getAccountByUserId(req.params.userId);
+    const totalCost = (amount * price) + fee;
+
+    if (!account || parseFloat(account.balance) < totalCost) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Недостаточно средств на балансе']
+      });
+    }
+
+    // Update user balance
+    const newBalance = parseFloat(account.balance) - totalCost;
+    await db.updateAccount(req.params.userId, newBalance.toString());
+
+    // Add to portfolio
+    const result = await db.addToPortfolio(req.params.userId, coinSymbol, coinName, amount, price, fee);
+
+    // Log activity
+    await db.logActivity({
+      userId: req.params.userId,
+      action: 'portfolio_buy',
+      entityType: 'portfolio',
+      entityId: coinSymbol,
+      details: JSON.stringify({
+        coinSymbol,
+        coinName,
+        amount,
+        price,
+        fee,
+        totalCost,
+        newBalance
+      })
+    });
+
+    res.json({
+      success: true,
+      message: 'Покупка успешно выполнена',
+      data: result
+    });
+
+  } catch (error) {
+    console.error('Buy coins error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при покупке']
+    });
+  }
+});
+
+// Sell coins (remove from portfolio)
+app.post('/api/users/:userId/portfolio/sell', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.userId !== req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        errors: ['Доступ запрещен']
+      });
+    }
+
+    const { coinSymbol, amount, price, fee = 0 } = req.body;
+
+    if (!coinSymbol || !amount || !price) {
+      return res.status(400).json({
+        success: false,
+        errors: ['Не все обязательные поля заполнены']
+      });
+    }
+
+    // Remove from portfolio
+    const result = await db.removeFromPortfolio(req.params.userId, coinSymbol, amount, price, fee);
+
+    // Update user balance
+    const account = await db.getAccountByUserId(req.params.userId);
+    const currentBalance = parseFloat(account.balance);
+    const saleValue = (amount * price) - fee;
+    const newBalance = currentBalance + saleValue;
+    
+    await db.updateAccount(req.params.userId, newBalance.toString());
+
+    // Log activity
+    await db.logActivity({
+      userId: req.params.userId,
+      action: 'portfolio_sell',
+      entityType: 'portfolio',
+      entityId: coinSymbol,
+      details: JSON.stringify({
+        coinSymbol,
+        amount,
+        price,
+        fee,
+        saleValue,
+        newBalance
+      })
+    });
+
+    res.json({
+      success: true,
+      message: 'Продажа успешно выполнена',
+      data: result
+    });
+
+  } catch (error) {
+    console.error('Sell coins error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при продаже']
+    });
+  }
+});
+
+// Get portfolio transactions
+app.get('/api/users/:userId/portfolio/transactions', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        errors: ['Токен не предоставлен']
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (decoded.userId !== req.params.userId) {
+      return res.status(403).json({
+        success: false,
+        errors: ['Доступ запрещен']
+      });
+    }
+
+    const filters = {
+      coinSymbol: req.query.coinSymbol,
+      transactionType: req.query.transactionType,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+      limit: req.query.limit ? parseInt(req.query.limit) : 50
+    };
+
+    const transactions = await db.getPortfolioTransactions(req.params.userId, filters);
+
+    res.json({
+      success: true,
+      transactions
+    });
+
+  } catch (error) {
+    console.error('Get portfolio transactions error:', error);
+    res.status(500).json({
+      success: false,
+      errors: ['Ошибка сервера при получении транзакций']
+    });
+  }
+});
+
+// Static files middleware (after all routes)
+app.use(express.static('public'));
+
 server.listen(PORT, async () => {
   try {
     // Initialize database
@@ -2484,8 +2616,7 @@ server.listen(PORT, async () => {
     await initializeRoles();
     console.log('Roles system initialized successfully');
     
-    // Create admin account
-    await createAdminAccount();
+
     
     // Initial coin prices fetch
     await fetchCoinPrices();

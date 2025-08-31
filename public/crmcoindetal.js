@@ -5,6 +5,12 @@ let currentCoin = null;
 let priceChart = null;
 let ws = null; // WebSocket connection
 
+// Отладочная информация при загрузке
+console.log('crmcoindetal.js loaded');
+console.log('Current URL:', window.location.href);
+console.log('Search params:', window.location.search);
+console.log('Auth token present:', !!authToken);
+
 // DOM elements
 const currentUserElement = document.getElementById('currentUser');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -40,12 +46,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Check authentication
 function checkAuth() {
-    if (!authToken || !currentUser) {
-        window.location.href = '/';
+    console.log('Checking authentication...');
+    console.log('Auth token:', authToken ? 'present' : 'missing');
+    console.log('Current user:', currentUser);
+    
+    if (!authToken) {
+        console.warn('No auth token found, but continuing...');
+        // Не перенаправляем сразу, а показываем предупреждение
+        showNotification('Предупреждение', 'Токен авторизации не найден. Некоторые функции могут быть недоступны.', 'warning');
         return;
     }
     
-    currentUserElement.textContent = currentUser.username || currentUser.email;
+    if (!currentUser) {
+        console.warn('No current user found, but continuing...');
+        // Не перенаправляем сразу, а показываем предупреждение
+        showNotification('Предупреждение', 'Данные пользователя не найдены. Некоторые функции могут быть недоступны.', 'warning');
+        return;
+    }
+    
+    if (currentUserElement) {
+        currentUserElement.textContent = currentUser.username || currentUser.email || 'Пользователь';
+    }
+    
+    console.log('Authentication check completed successfully');
 }
 
 // Setup event listeners
@@ -53,7 +76,12 @@ function setupEventListeners() {
     console.log('Setting up event listeners...');
     
     // Logout
-    logoutBtn.addEventListener('click', handleLogout);
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+        console.log('Logout button listener added');
+    } else {
+        console.warn('Logout button not found');
+    }
     
     // Edit info modal
     if (editInfoBtn) {
@@ -61,51 +89,95 @@ function setupEventListeners() {
             console.log('Edit button clicked');
             // Ensure form is populated with current data
             if (currentCoin) {
-                document.getElementById('editName').value = currentCoin.name || '';
-                document.getElementById('editSymbol').value = currentCoin.symbol || '';
-                document.getElementById('editCategory').value = currentCoin.category || 'infrastructure';
-                document.getElementById('editStatus').value = currentCoin.status || 'active';
-                document.getElementById('editDescription').value = currentCoin.description || '';
+                const editName = document.getElementById('editName');
+                const editSymbol = document.getElementById('editSymbol');
+                const editCategory = document.getElementById('editCategory');
+                const editStatus = document.getElementById('editStatus');
+                const editDescription = document.getElementById('editDescription');
+                
+                if (editName) editName.value = currentCoin.name || '';
+                if (editSymbol) editSymbol.value = currentCoin.symbol || '';
+                if (editCategory) editCategory.value = currentCoin.category || 'infrastructure';
+                if (editStatus) editStatus.value = currentCoin.status || 'active';
+                if (editDescription) editDescription.value = currentCoin.description || '';
             }
-            editInfoModal.classList.add('active');
-            console.log('Edit modal opened');
+            if (editInfoModal) {
+                editInfoModal.classList.add('active');
+                console.log('Edit modal opened');
+            }
         });
         console.log('Edit button event listener added');
     } else {
-        console.error('Edit button not found');
+        console.warn('Edit button not found');
     }
+    
     if (closeEditModal) {
         closeEditModal.addEventListener('click', () => {
-            editInfoModal.classList.remove('active');
-            console.log('Edit modal closed');
+            if (editInfoModal) {
+                editInfoModal.classList.remove('active');
+                console.log('Edit modal closed');
+            }
         });
+        console.log('Close modal button listener added');
     } else {
-        console.error('Close modal button not found');
+        console.warn('Close modal button not found');
     }
     
     if (cancelEdit) {
         cancelEdit.addEventListener('click', () => {
-            editInfoModal.classList.remove('active');
-            console.log('Edit modal cancelled');
+            if (editInfoModal) {
+                editInfoModal.classList.remove('active');
+                console.log('Edit modal cancelled');
+            }
         });
+        console.log('Cancel edit button listener added');
     } else {
-        console.error('Cancel edit button not found');
+        console.warn('Cancel edit button not found');
     }
+    
     if (editInfoForm) {
         editInfoForm.addEventListener('submit', handleEditInfo);
         console.log('Edit form event listener added');
     } else {
-        console.error('Edit form not found');
+        console.warn('Edit form not found');
     }
     
     // Simulation form
-    simulationForm.addEventListener('submit', handleSimulation);
-    simulationType.addEventListener('change', handleSimulationTypeChange);
-    resetSimulation.addEventListener('click', resetSimulationForm);
-    stopSimulationBtn.addEventListener('click', stopSimulation);
+    if (simulationForm) {
+        simulationForm.addEventListener('submit', handleSimulation);
+        console.log('Simulation form listener added');
+    } else {
+        console.warn('Simulation form not found');
+    }
+    
+    if (simulationType) {
+        simulationType.addEventListener('change', handleSimulationTypeChange);
+        console.log('Simulation type listener added');
+    } else {
+        console.warn('Simulation type not found');
+    }
+    
+    if (resetSimulation) {
+        resetSimulation.addEventListener('click', resetSimulationForm);
+        console.log('Reset simulation listener added');
+    } else {
+        console.warn('Reset simulation button not found');
+    }
+    
+    if (stopSimulationBtn) {
+        stopSimulationBtn.addEventListener('click', stopSimulation);
+        console.log('Stop simulation listener added');
+    } else {
+        console.warn('Stop simulation button not found');
+    }
     
     // Chart controls
-    refreshChartBtn.addEventListener('click', updateChart);
+    if (refreshChartBtn) {
+        refreshChartBtn.addEventListener('click', updateChart);
+        console.log('Refresh chart listener added');
+    } else {
+        console.warn('Refresh chart button not found');
+    }
     
     // Close modal on outside click
     if (editInfoModal) {
@@ -117,7 +189,7 @@ function setupEventListeners() {
         });
         console.log('Modal outside click listener added');
     } else {
-        console.error('Modal element not found');
+        console.warn('Modal element not found');
     }
     
     // Close modal on Escape key
@@ -128,6 +200,8 @@ function setupEventListeners() {
         }
     });
     console.log('Escape key listener added');
+    
+    console.log('All event listeners setup completed');
 }
 
 // Load coin data from URL parameters
@@ -138,15 +212,39 @@ async function loadCoinData() {
     const coinId = urlParams.get('id');
     
     console.log('URL params:', { coinId, authToken: authToken ? 'present' : 'missing' });
+    console.log('Full URL:', window.location.href);
+    console.log('Search params:', window.location.search);
     
     if (!coinId) {
         showNotification('Ошибка!', 'ID монеты не указан', 'error');
+        console.error('No coin ID found in URL');
         return;
     }
     
     try {
         showLoading(true);
         console.log('Fetching coin data for:', coinId);
+        
+        // Проверяем наличие токена перед запросом
+        if (!authToken) {
+            console.warn('No auth token, showing demo data');
+            // Показываем демо данные если нет токена
+            currentCoin = {
+                id: coinId,
+                name: 'Demo Coin',
+                symbol: 'DEMO',
+                price: 100.00,
+                priceChange: 5.25,
+                marketCap: 1000000000,
+                volume: 50000000,
+                category: 'infrastructure',
+                status: 'active',
+                description: 'Демонстрационная монета'
+            };
+            updateCoinDisplay();
+            showNotification('Информация', 'Показаны демо данные (токен авторизации не найден)', 'info');
+            return;
+        }
         
         const response = await fetch(`/api/coins/${coinId}`, {
             headers: {
@@ -170,6 +268,21 @@ async function loadCoinData() {
     } catch (error) {
         console.error('Error loading coin data:', error);
         showNotification('Ошибка!', 'Не удалось загрузить данные монеты', 'error');
+        
+        // Показываем демо данные в случае ошибки
+        currentCoin = {
+            id: coinId,
+            name: 'Demo Coin',
+            symbol: 'DEMO',
+            price: 100.00,
+            priceChange: 5.25,
+            marketCap: 1000000000,
+            volume: 50000000,
+            category: 'infrastructure',
+            status: 'active',
+            description: 'Демонстрационная монета (ошибка загрузки)'
+        };
+        updateCoinDisplay();
     } finally {
         showLoading(false);
     }
@@ -177,44 +290,79 @@ async function loadCoinData() {
 
 // Update coin display
 function updateCoinDisplay() {
-    if (!currentCoin) return;
+    if (!currentCoin) {
+        console.warn('No current coin data to display');
+        return;
+    }
+    
+    console.log('Updating coin display for:', currentCoin);
     
     // Update header with logo
     const coinIcon = document.getElementById('coinIcon');
     if (coinIcon) {
         coinIcon.innerHTML = '';
-        const logo = CryptoLogos.createCoinLogo(currentCoin.id, 48, 'coin-logo');
-        coinIcon.appendChild(logo);
+        try {
+            const logo = CryptoLogos.createCoinLogo(currentCoin.id, 32, 'coin-logo');
+            coinIcon.appendChild(logo);
+        } catch (error) {
+            console.warn('Error creating coin logo:', error);
+            coinIcon.innerHTML = '<i class="fas fa-coins"></i>';
+        }
     }
     
-    document.getElementById('coinName').textContent = currentCoin.name;
-    document.getElementById('coinSymbol').textContent = currentCoin.symbol;
-    document.getElementById('coinCategory').textContent = getCategoryDisplayName(currentCoin.category);
+    // Update basic info
+    const coinName = document.getElementById('coinName');
+    const coinSymbol = document.getElementById('coinSymbol');
+    const coinCategory = document.getElementById('coinCategory');
+    
+    if (coinName) coinName.textContent = currentCoin.name;
+    if (coinSymbol) coinSymbol.textContent = currentCoin.symbol;
+    if (coinCategory) coinCategory.textContent = getCategoryDisplayName(currentCoin.category);
     
     // Update price info
-    document.getElementById('currentPrice').textContent = formatPrice(currentCoin.price);
-    document.getElementById('marketCap').textContent = formatMarketCap(currentCoin.marketCap);
-    document.getElementById('volume24h').textContent = formatVolume(currentCoin.volume);
+    const currentPrice = document.getElementById('currentPrice');
+    const marketCap = document.getElementById('marketCap');
+    const volume24h = document.getElementById('volume24h');
+    
+    if (currentPrice) currentPrice.textContent = formatPrice(currentCoin.price);
+    if (marketCap) marketCap.textContent = formatMarketCap(currentCoin.marketCap);
+    if (volume24h) volume24h.textContent = formatVolume(currentCoin.volume);
     
     // Update price change
     const priceChangeElement = document.getElementById('priceChange');
-    const change = currentCoin.priceChange || 0;
-    priceChangeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-    priceChangeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+    if (priceChangeElement) {
+        const change = currentCoin.priceChange || 0;
+        priceChangeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+        priceChangeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+    }
     
     // Update info section
-    document.getElementById('infoName').textContent = currentCoin.name;
-    document.getElementById('infoSymbol').textContent = currentCoin.symbol;
-    document.getElementById('infoCategory').textContent = getCategoryDisplayName(currentCoin.category);
-    document.getElementById('infoStatus').textContent = getStatusDisplayName(currentCoin.status);
-    document.getElementById('infoDescription').textContent = currentCoin.description || 'Описание не указано';
+    const infoName = document.getElementById('infoName');
+    const infoSymbol = document.getElementById('infoSymbol');
+    const infoCategory = document.getElementById('infoCategory');
+    const infoStatus = document.getElementById('infoStatus');
+    const infoDescription = document.getElementById('infoDescription');
+    
+    if (infoName) infoName.textContent = currentCoin.name;
+    if (infoSymbol) infoSymbol.textContent = currentCoin.symbol;
+    if (infoCategory) infoCategory.textContent = getCategoryDisplayName(currentCoin.category);
+    if (infoStatus) infoStatus.textContent = getStatusDisplayName(currentCoin.status);
+    if (infoDescription) infoDescription.textContent = currentCoin.description || 'Описание не указано';
     
     // Update edit form
-    document.getElementById('editName').value = currentCoin.name;
-    document.getElementById('editSymbol').value = currentCoin.symbol;
-    document.getElementById('editCategory').value = currentCoin.category;
-    document.getElementById('editStatus').value = currentCoin.status;
-    document.getElementById('editDescription').value = currentCoin.description || '';
+    const editName = document.getElementById('editName');
+    const editSymbol = document.getElementById('editSymbol');
+    const editCategory = document.getElementById('editCategory');
+    const editStatus = document.getElementById('editStatus');
+    const editDescription = document.getElementById('editDescription');
+    
+    if (editName) editName.value = currentCoin.name;
+    if (editSymbol) editSymbol.value = currentCoin.symbol;
+    if (editCategory) editCategory.value = currentCoin.category;
+    if (editStatus) editStatus.value = currentCoin.status;
+    if (editDescription) editDescription.value = currentCoin.description || '';
+    
+    console.log('Coin display updated successfully');
 }
 
 // Update only current price display (for simulation monitoring)
@@ -251,78 +399,92 @@ async function updateCurrentPrice() {
 
 // Initialize chart
 function initializeChart() {
-    const ctx = document.getElementById('priceChart').getContext('2d');
+    console.log('Initializing chart...');
     
-    priceChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [],
-            datasets: [{
-                label: 'Цена (USD)',
-                data: [],
-                borderColor: '#00d4aa',
-                backgroundColor: 'rgba(0, 212, 170, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            return 'Цена: $' + context.parsed.y.toLocaleString();
-                        }
-                    }
-                }
+    const canvas = document.getElementById('priceChart');
+    if (!canvas) {
+        console.warn('Price chart canvas not found');
+        return;
+    }
+    
+    try {
+        const ctx = canvas.getContext('2d');
+        
+        priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Цена (USD)',
+                    data: [],
+                    borderColor: '#00d4aa',
+                    backgroundColor: 'rgba(0, 212, 170, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
             },
-            scales: {
-                x: {
-                    grid: {
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
                         display: false
                     },
-                    ticks: {
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                },
-                y: {
-                    grid: {
-                        color: '#f0f0f0'
-                    },
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value.toLocaleString();
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return 'Цена: $' + context.parsed.y.toLocaleString();
+                            }
                         }
                     }
-                }
-            },
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            elements: {
-                point: {
-                    radius: 2,
-                    hoverRadius: 4
                 },
-                line: {
-                    tension: 0.2 // Slightly reduce tension for more natural curves
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#f0f0f0'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                elements: {
+                    point: {
+                        radius: 2,
+                        hoverRadius: 4
+                    },
+                    line: {
+                        tension: 0.2 // Slightly reduce tension for more natural curves
+                    }
+                },
+                animation: {
+                    duration: 750 // Faster animations for more responsive feel
                 }
-            },
-            animation: {
-                duration: 750 // Faster animations for more responsive feel
             }
-        }
-    });
+        });
+        
+        console.log('Chart initialized successfully');
+    } catch (error) {
+        console.error('Error initializing chart:', error);
+    }
 }
 
 // Debounce chart updates to prevent too frequent updates
@@ -744,58 +906,80 @@ window.testModal = testModal;
 
 // Initialize WebSocket connection
 function initializeWebSocket() {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  const wsUrl = `${protocol}//${window.location.host}`;
-  
-  ws = new WebSocket(wsUrl);
-  
-  ws.onopen = () => {
-    console.log('WebSocket connection established');
-  };
-  
-  ws.onmessage = (event) => {
+    console.log('Initializing WebSocket...');
+    
     try {
-      const message = JSON.parse(event.data);
-      
-      if (message.type === 'price_update' && currentCoin && message.data.coinId === currentCoin.id) {
-        // Update current coin price
-        currentCoin.price = message.data.price;
-        currentCoin.priceChange = message.data.priceChange;
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}`;
         
-        // Update display
-        updateCurrentPriceDisplay();
+        console.log('WebSocket URL:', wsUrl);
         
-        // Update chart if simulation is active
-        if (window.simulationMonitoringInterval) {
-          updateChart();
-        }
-      }
+        ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+            console.log('WebSocket connection established');
+        };
+        
+        ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                
+                if (message.type === 'price_update' && currentCoin && message.data.coinId === currentCoin.id) {
+                    // Update current coin price
+                    currentCoin.price = message.data.price;
+                    currentCoin.priceChange = message.data.priceChange;
+                    
+                    // Update display
+                    updateCurrentPriceDisplay();
+                    
+                    // Update chart if simulation is active
+                    if (window.simulationMonitoringInterval) {
+                        updateChart();
+                    }
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
+        };
+        
+        ws.onclose = () => {
+            console.log('WebSocket connection closed');
+            // Reconnect after 5 seconds
+            setTimeout(initializeWebSocket, 5000);
+        };
+        
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+        };
+        
+        console.log('WebSocket initialization completed');
     } catch (error) {
-      console.error('Error parsing WebSocket message:', error);
+        console.error('Error initializing WebSocket:', error);
     }
-  };
-  
-  ws.onclose = () => {
-    console.log('WebSocket connection closed');
-    // Reconnect after 5 seconds
-    setTimeout(initializeWebSocket, 5000);
-  };
-  
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
-  };
 }
 
 // Update only price display elements (for WebSocket updates)
 function updateCurrentPriceDisplay() {
-  if (!currentCoin) return;
-  
-  // Update price-related elements
-  document.getElementById('currentPrice').textContent = formatPrice(currentCoin.price);
-  
-  // Update price change
-  const priceChangeElement = document.getElementById('priceChange');
-  const change = currentCoin.priceChange || 0;
-  priceChangeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
-  priceChangeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+    if (!currentCoin) {
+        console.warn('No current coin data for price update');
+        return;
+    }
+    
+    console.log('Updating current price display');
+    
+    // Update price-related elements
+    const currentPriceElement = document.getElementById('currentPrice');
+    if (currentPriceElement) {
+        currentPriceElement.textContent = formatPrice(currentCoin.price);
+    }
+    
+    // Update price change
+    const priceChangeElement = document.getElementById('priceChange');
+    if (priceChangeElement) {
+        const change = currentCoin.priceChange || 0;
+        priceChangeElement.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
+        priceChangeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+    }
+    
+    console.log('Current price display updated');
 }

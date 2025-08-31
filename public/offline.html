@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Exchange - Нет подключения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0066CC 0%, #004499 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .offline-container {
+            max-width: 400px;
+            width: 100%;
+        }
+        
+        .offline-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .status {
+            margin-top: 20px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <div class="offline-icon">📡</div>
+        <h1>Нет подключения к интернету</h1>
+        <p>Проверьте подключение к интернету и попробуйте снова. Некоторые функции приложения могут быть недоступны в оффлайн режиме.</p>
+        
+        <button class="retry-btn" onclick="retryConnection()">Повторить попытку</button>
+        
+        <div class="status" id="status">
+            Проверка подключения...
+        </div>
+    </div>
+
+    <script>
+        function retryConnection() {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = 'Проверка подключения...';
+            
+            // Проверяем подключение
+            if (navigator.onLine) {
+                statusEl.textContent = 'Подключение восстановлено!';
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                statusEl.textContent = 'Подключение к интернету отсутствует';
+                setTimeout(() => {
+                    statusEl.textContent = 'Проверьте настройки сети';
+                }, 2000);
+            }
+        }
+        
+        // Слушаем изменения статуса подключения
+        window.addEventListener('online', () => {
+            document.getElementById('status').textContent = 'Подключение восстановлено!';
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+        
+        window.addEventListener('offline', () => {
+            document.getElementById('status').textContent = 'Подключение к интернету отсутствует';
+        });
+        
+        // Проверяем статус при загрузке
+        if (navigator.onLine) {
+            document.getElementById('status').textContent = 'Подключение есть, но страница недоступна';
+        } else {
+            document.getElementById('status').textContent = 'Подключение к интернету отсутствует';
+        }
+    </script>
+</body>
+</html>

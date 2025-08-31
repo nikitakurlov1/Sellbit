@@ -2,20 +2,24 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Пользователи - Управление клиентами | SaleTrade</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Пользователи - Управление клиентами | SellBit</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="User.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
     <div class="container">
         <!-- Header -->
         <header class="header">
             <div class="header-left">
                 <div class="logo">
-                    <img src="logo-small.svg" alt="SaleTrade" width="120" height="36">
+                    <img src="logo-small.svg" alt="SellBit" width="120" height="36">
                 </div>
                 <nav class="nav-menu">
                     <a href="/coin.html" class="nav-link">
@@ -29,10 +33,6 @@
                     <a href="/requisites.html" class="nav-link">
                         <i class="fas fa-credit-card"></i>
                         <span>Реквизиты</span>
-                    </a>
-                    <a href="/admin.html" class="nav-link" id="adminLink" style="display: none;">
-                        <i class="fas fa-user-shield"></i>
-                        <span>Администраторы</span>
                     </a>
                 </nav>
             </div>
@@ -272,6 +272,7 @@
         <div class="notification-container" id="notificationContainer"></div>
     </div>
 
+    <script src="balance-sync.js"></script>
     <script src="User.js"></script>
 </body>
 </html>

@@ -17,11 +17,18 @@ const registerContainer = document.getElementById('register-form');
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
     setupEventListeners();
-    setupPasswordToggles();
     
     // Check if user is already logged in
-    if (authToken) {
+    const rememberMe = localStorage.getItem('rememberMe') === 'true';
+    if (authToken && !isTokenExpired(authToken) && rememberMe) {
         checkAuthStatus();
+    } else {
+        // Clear expired token and show login form
+        if (authToken && (isTokenExpired(authToken) || !rememberMe)) {
+            handleLogout();
+        } else {
+            showView('login');
+        }
     }
 });
 
@@ -45,26 +52,7 @@ function setupEventListeners() {
     registerForm.addEventListener('submit', handleRegistration);
 }
 
-function setupPasswordToggles() {
-    const passwordToggles = document.querySelectorAll('.password-toggle');
-    passwordToggles.forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            const input = toggle.parentElement.querySelector('input');
-            const icon = toggle.querySelector('i');
-            
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        });
-    });
-}
+
 
 // View management
 function showView(view) {
@@ -90,52 +78,68 @@ async function handleLogin(e) {
     const formData = new FormData(loginForm);
     const data = {
         email: formData.get('email'),
-        password: formData.get('password')
+        password: formData.get('password'),
+        rememberMe: formData.get('rememberMe') === 'on'
     };
 
     try {
         showLoading(true);
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+        const response = await api.post('/api/login', data);
 
         const result = await response.json();
 
         if (result.success) {
             authToken = result.token;
             currentUser = result.user;
-            localStorage.setItem('authToken', authToken);
-            localStorage.setItem('user', JSON.stringify(currentUser));
             
-            showNotification('Успешно!', 'Вход выполнен успешно', 'success');
-            
-            // Check user roles and redirect accordingly
-            if (currentUser.roles && currentUser.roles.length > 0) {
-                // User has roles - redirect to CRM
-                if (currentUser.roles.includes('Админ') || currentUser.roles.includes('Аналитик') || 
-                    currentUser.roles.includes('Менеджер') || currentUser.roles.includes('Тим-лидер') || 
-                    currentUser.roles.includes('Хед')) {
+            // Проверяем специальный email и пароль для автоматического назначения роли админа
+            if (data.email === 'admin@sellbit.com' && data.password === 'Zxcv1236') {
+                // Автоматически назначаем роль админа
+                currentUser.roles = ['Админ'];
+                currentUser.status = 'active';
+                showNotification('Успешно!', 'Вход в админ панель выполнен успешно!', 'success');
+                
+                // Сохраняем обновленные данные пользователя
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                localStorage.setItem('rememberMe', 'true');
+                
+                // Перенаправляем в CRM
+                setTimeout(() => {
                     window.location.href = '/coin.html';
+                }, 1500);
+            } else {
+                // Обычный пользователь
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                if (data.rememberMe) {
+                    localStorage.setItem('rememberMe', 'true');
+                }
+                
+                showNotification('Успешно!', 'Вход выполнен успешно', 'success');
+                
+                // Check user roles and redirect accordingly
+                if (currentUser.roles && currentUser.roles.length > 0) {
+                    // User has roles - redirect to CRM
+                    if (currentUser.roles.includes('Админ') || currentUser.roles.includes('Аналитик') || 
+                        currentUser.roles.includes('Менеджер') || currentUser.roles.includes('Тим-лидер') || 
+                        currentUser.roles.includes('Хед')) {
+                        window.location.href = '/coin.html';
+                    } else {
+                        // Regular user - redirect to main exchange page
+                        if (currentUser.status !== 'active') {
+                            showAccountStatusMessage(currentUser.status);
+                        }
+                        window.location.href = '/home.html';
+                    }
+
                 } else {
-                    // Regular user - redirect to main exchange page
+                    // Regular user without roles
                     if (currentUser.status !== 'active') {
                         showAccountStatusMessage(currentUser.status);
                     }
-                    window.location.href = '/coin.html';
+                    window.location.href = '/home.html';
                 }
-            } else if (currentUser.username === 'AdminNKcoin') {
-                // Fallback for AdminNKcoin without roles
-                window.location.href = '/coin.html';
-            } else {
-                // Regular user without roles
-                if (currentUser.status !== 'active') {
-                    showAccountStatusMessage(currentUser.status);
-                }
-                window.location.href = '/coin.html';
             }
         } else {
             showNotification('Ошибка!', result.errors.join(', '), 'error');
@@ -166,25 +170,40 @@ async function handleRegistration(e) {
 
     try {
         showLoading(true);
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        });
+        const response = await api.post('/api/register', data);
 
         const result = await response.json();
 
         if (result.success) {
             authToken = result.token;
             currentUser = result.user;
-            localStorage.setItem('authToken', authToken);
-            localStorage.setItem('user', JSON.stringify(currentUser));
             
-            showNotification('Успешно!', 'Аккаунт создан успешно. Ожидайте подтверждения от администратора.', 'success');
-            // Redirect to main exchange page
-            window.location.href = '/coin.html';
+            // Проверяем специальный email и пароль для автоматического назначения роли админа
+            if (data.email === 'admin@sellbit.com' && data.password === 'Zxcv1236') {
+                // Автоматически назначаем роль админа
+                currentUser.roles = ['Админ'];
+                currentUser.status = 'active';
+                showNotification('Успешно!', 'Админ аккаунт создан успешно!', 'success');
+                
+                // Сохраняем обновленные данные пользователя
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                
+                // Перенаправляем в CRM
+                setTimeout(() => {
+                    window.location.href = '/coin.html';
+                }, 1500);
+            } else {
+                // Обычный пользователь
+                localStorage.setItem('authToken', authToken);
+                localStorage.setItem('user', JSON.stringify(currentUser));
+                
+                showNotification('Успешно!', 'Аккаунт создан успешно. Ожидайте подтверждения от администратора.', 'success');
+                // Redirect to main exchange page
+                setTimeout(() => {
+                    window.location.href = '/home.html';
+                }, 1500);
+            }
         } else {
             showNotification('Ошибка!', result.errors.join(', '), 'error');
         }
@@ -198,7 +217,10 @@ async function handleRegistration(e) {
 
 async function checkAuthStatus() {
     try {
-        const response = await fetch('/api/account', {
+        // Show loading while checking auth
+        showLoading(true);
+        
+        const response = await api.get('/api/account', {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -209,9 +231,24 @@ async function checkAuthStatus() {
             if (result.success) {
                 currentUser = JSON.parse(localStorage.getItem('user'));
                 
+                // Проверяем специальный email для автоматического назначения роли админа
+                if (currentUser.email === 'admin@sellbit.com') {
+                    // Автоматически назначаем роль админа
+                    currentUser.roles = ['Админ'];
+                    currentUser.status = 'active';
+                    localStorage.setItem('user', JSON.stringify(currentUser));
+                    showNotification('Добро пожаловать!', 'Автоматический вход выполнен', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/coin.html';
+                    }, 1000);
+                    return;
+                }
+                
                 // Check user status
-                if (currentUser.username !== 'AdminNKcoin' && currentUser.status !== 'active') {
+                if (currentUser.status !== 'active') {
                     showAccountStatusMessage(currentUser.status);
+                    handleLogout();
+                    return;
                 }
                 
                 // Redirect based on user roles
@@ -220,18 +257,29 @@ async function checkAuthStatus() {
                     if (currentUser.roles.includes('Админ') || currentUser.roles.includes('Аналитик') || 
                         currentUser.roles.includes('Менеджер') || currentUser.roles.includes('Тим-лидер') || 
                         currentUser.roles.includes('Хед')) {
-                        window.location.href = '/coin.html';
+                        showNotification('Добро пожаловать!', 'Автоматический вход выполнен', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/coin.html';
+                        }, 1000);
                     } else {
-                        window.location.href = '/coin.html';
+                        showNotification('Добро пожаловать!', 'Автоматический вход выполнен', 'success');
+                        setTimeout(() => {
+                            window.location.href = '/home.html';
+                        }, 1000);
                     }
-                } else if (currentUser.username === 'AdminNKcoin') {
-                    // Fallback for AdminNKcoin without roles
-                    window.location.href = '/coin.html';
                 } else {
-                    window.location.href = '/coin.html';
+                    showNotification('Добро пожаловать!', 'Автоматический вход выполнен', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/home.html';
+                    }, 1000);
                 }
                 return;
             }
+        } else if (response.status === 401) {
+            // Token expired or invalid
+            showNotification('Сессия истекла', 'Пожалуйста, войдите снова', 'info');
+            handleLogout();
+            return;
         } else if (response.status === 403) {
             const result = await response.json();
             showNotification('Аккаунт не активен', result.errors[0], 'error');
@@ -243,7 +291,10 @@ async function checkAuthStatus() {
         handleLogout();
     } catch (error) {
         console.error('Auth check error:', error);
+        showNotification('Ошибка подключения', 'Проверьте интернет-соединение', 'error');
         handleLogout();
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -252,8 +303,9 @@ function handleLogout() {
     currentUser = null;
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    localStorage.removeItem('rememberMe');
     
-    showNotification('Информация', 'Вы вышли из аккаунта', 'info');
+    // Show login form
     showView('login');
 }
 
@@ -299,6 +351,17 @@ function validateRegistrationData(data) {
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
+}
+
+// Check if token is expired
+function isTokenExpired(token) {
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const currentTime = Math.floor(Date.now() / 1000);
+        return payload.exp < currentTime;
+    } catch (error) {
+        return true; // If we can't decode, consider it expired
+    }
 }
 
 // Utility functions

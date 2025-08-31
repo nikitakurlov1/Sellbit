@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест кнопок PWA</title>
+    <meta name="theme-color" content="#0066CC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Crypto Exchange">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: #0066CC;
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .header-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .header-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .status {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .btn {
+            background: #0066CC;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #004499;
+        }
+        .btn.danger {
+            background: #dc3545;
+        }
+        .btn.danger:hover {
+            background: #c82333;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 Тест кнопок PWA</h1>
+            <button class="header-btn" id="headerInstallBtn" style="display: none;" onclick="showInstallPrompt()">
+                📱 Установить
+            </button>
+        </div>
+        
+        <div class="status">
+            <h3>Статус PWA:</h3>
+            <p><strong>Установлено:</strong> <span id="installStatus">Проверка...</span></p>
+            <p><strong>Режим:</strong> <span id="displayMode">Проверка...</span></p>
+            <p><strong>Кнопка в header:</strong> <span id="headerBtnStatus">Скрыта</span></p>
+        </div>
+        
+        <div>
+            <button class="btn" onclick="showInstallPrompt()">📱 Показать кнопку установки</button>
+            <button class="btn" onclick="checkStatus()">🔄 Обновить статус</button>
+            <button class="btn danger" onclick="resetState()">🗑️ Сбросить состояние</button>
+            <button class="btn" onclick="goHome()">🏠 На главную</button>
+        </div>
+        
+        <div class="log" id="log">
+            <div>Лог событий:</div>
+        </div>
+    </div>
+
+    <script src="pwa-register.js"></script>
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function showInstallPrompt() {
+            log('Попытка показать кнопку установки');
+            if (window.PWA && window.PWA.showInstallButton) {
+                window.PWA.showInstallButton();
+                log('Кнопка установки показана');
+            } else {
+                log('ОШИБКА: PWA не поддерживается');
+            }
+        }
+        
+        function checkStatus() {
+            log('Проверка статуса PWA');
+            updateStatus();
+        }
+        
+        function resetState() {
+            log('Сброс состояния PWA');
+            if (window.PWA && window.PWA.resetPWAInstallState) {
+                window.PWA.resetPWAInstallState();
+                log('Состояние сброшено');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+        }
+        
+        function goHome() {
+            window.location.href = 'home.html';
+        }
+        
+        function updateStatus() {
+            // Статус установки
+            const installStatus = document.getElementById('installStatus');
+            if (window.PWA && window.PWA.isPWAInstalled) {
+                if (window.PWA.isPWAInstalled()) {
+                    installStatus.textContent = 'Да';
+                    installStatus.style.color = 'green';
+                } else {
+                    installStatus.textContent = 'Нет';
+                    installStatus.style.color = 'orange';
+                }
+            } else {
+                installStatus.textContent = 'Неизвестно';
+                installStatus.style.color = 'red';
+            }
+            
+            // Режим отображения
+            const displayMode = document.getElementById('displayMode');
+            if (window.matchMedia('(display-mode: standalone)').matches) {
+                displayMode.textContent = 'Standalone';
+                displayMode.style.color = 'green';
+            } else if (window.navigator.standalone === true) {
+                displayMode.textContent = 'iOS Standalone';
+                displayMode.style.color = 'green';
+            } else {
+                displayMode.textContent = 'Браузер';
+                displayMode.style.color = 'orange';
+            }
+            
+            // Статус кнопки в header
+            const headerBtnStatus = document.getElementById('headerBtnStatus');
+            const headerBtn = document.getElementById('headerInstallBtn');
+            if (headerBtn && headerBtn.style.display !== 'none') {
+                headerBtnStatus.textContent = 'Видна';
+                headerBtnStatus.style.color = 'green';
+            } else {
+                headerBtnStatus.textContent = 'Скрыта';
+                headerBtnStatus.style.color = 'gray';
+            }
+        }
+        
+        function updateHeaderButton() {
+            const headerBtn = document.getElementById('headerInstallBtn');
+            if (window.PWA && window.PWA.isPWAInstalled && !window.PWA.isPWAInstalled()) {
+                headerBtn.style.display = 'inline-block';
+                log('Кнопка в header показана');
+            } else {
+                headerBtn.style.display = 'none';
+                log('Кнопка в header скрыта');
+            }
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Страница загружена');
+            updateStatus();
+            updateHeaderButton();
+            
+            // Обновляем статус каждые 3 секунды
+            setInterval(() => {
+                updateStatus();
+                updateHeaderButton();
+            }, 3000);
+        });
+        
+        // Слушаем события установки
+        window.addEventListener('appinstalled', () => {
+            log('Событие appinstalled получено');
+            updateStatus();
+            updateHeaderButton();
+        });
+        
+        window.addEventListener('pwa-installed', () => {
+            log('Кастомное событие pwa-installed получено');
+            updateStatus();
+            updateHeaderButton();
+        });
+        
+        // Логируем все события PWA
+        if (window.PWA) {
+            log('PWA модуль загружен');
+        } else {
+            log('ОШИБКА: PWA модуль не загружен');
+        }
+    </script>
+</body>
+</html>

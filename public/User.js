@@ -79,20 +79,7 @@ async function checkAuth() {
             return;
         }
 
-        // Show/hide admin link based on roles
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) {
-            if (currentUser.user && currentUser.user.roles && 
-                (currentUser.user.roles.includes('Админ') || 
-                 currentUser.user.roles.includes('Аналитик') || 
-                 currentUser.user.roles.includes('Менеджер') || 
-                 currentUser.user.roles.includes('Тим-лидер') || 
-                 currentUser.user.roles.includes('Хед'))) {
-                adminLink.style.display = 'flex';
-            } else {
-                adminLink.style.display = 'none';
-            }
-        }
+
 
     } catch (error) {
         console.error('Error checking auth:', error);
@@ -293,6 +280,14 @@ async function handleEditUser(e) {
             showNotification('Успешно!', 'Пользователь обновлен', 'success');
             hideEditUserModal();
             loadUsers(); // Reload users
+            
+            // Синхронизируем баланс с биржей
+            if (window.BalanceSync) {
+                const success = await window.BalanceSync.updateUserBalance(userId, userData.balance);
+                if (success) {
+                    console.log('Баланс синхронизирован с биржей');
+                }
+            }
         } else {
             showNotification('Ошибка!', result.errors.join(', '), 'error');
         }

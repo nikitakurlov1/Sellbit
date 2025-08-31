@@ -91,6 +91,53 @@ const initializeDatabase = () => {
             }
         });
 
+        // Create user_portfolio table for storing user's cryptocurrency holdings
+        db.run(`
+            CREATE TABLE IF NOT EXISTS user_portfolio (
+                id TEXT PRIMARY KEY,
+                userId TEXT NOT NULL,
+                coinSymbol TEXT NOT NULL,
+                coinName TEXT NOT NULL,
+                balance REAL NOT NULL DEFAULT 0,
+                averageBuyPrice REAL NOT NULL DEFAULT 0,
+                totalInvested REAL NOT NULL DEFAULT 0,
+                lastUpdated TEXT NOT NULL,
+                createdAt TEXT NOT NULL,
+                FOREIGN KEY (userId) REFERENCES users (id),
+                UNIQUE(userId, coinSymbol)
+            )
+        `, (err) => {
+            if (err) {
+                console.error('Error creating user_portfolio table:', err);
+                reject(err);
+                return;
+            }
+        });
+
+        // Create portfolio_transactions table for tracking all portfolio operations
+        db.run(`
+            CREATE TABLE IF NOT EXISTS portfolio_transactions (
+                id TEXT PRIMARY KEY,
+                userId TEXT NOT NULL,
+                coinSymbol TEXT NOT NULL,
+                transactionType TEXT NOT NULL,
+                amount REAL NOT NULL,
+                price REAL NOT NULL,
+                totalValue REAL NOT NULL,
+                fee REAL NOT NULL DEFAULT 0,
+                balance REAL NOT NULL,
+                timestamp TEXT NOT NULL,
+                status TEXT DEFAULT 'completed',
+                FOREIGN KEY (userId) REFERENCES users (id)
+            )
+        `, (err) => {
+            if (err) {
+                console.error('Error creating portfolio_transactions table:', err);
+                reject(err);
+                return;
+            }
+        });
+
         // Create requisites table
         db.run(`
             CREATE TABLE IF NOT EXISTS requisites (
@@ -338,6 +385,25 @@ const getAccountByUserId = (userId) => {
                 }
             }
         );
+    });
+};
+
+// Update account balance
+const updateAccount = (userId, newBalance) => {
+    return new Promise((resolve, reject) => {
+        const timestamp = new Date().toISOString();
+        
+        db.run(`
+            UPDATE accounts 
+            SET balance = ?
+            WHERE userId = ?
+        `, [newBalance, userId], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({ success: true, updatedRows: this.changes });
+            }
+        });
     });
 };
 
@@ -869,6 +935,276 @@ const getActivityLog = (filters = {}) => {
     });
 };
 
+// Portfolio Management Functions
+
+// Get user's portfolio
+const getUserPortfolio = (userId) => {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT 
+                up.id,
+                up.coinSymbol,
+                up.coinName,
+                up.balance,
+                up.averageBuyPrice,
+                up.totalInvested,
+                up.lastUpdated,
+                c.price as currentPrice,
+                c.priceChange,
+                (up.balance * c.price) as currentValue,
+                ((c.price - up.averageBuyPrice) / up.averageBuyPrice * 100) as profitLossPercent
+            FROM user_portfolio up
+            LEFT JOIN coins c ON up.coinSymbol = c.symbol
+            WHERE up.userId = ? AND up.balance > 0
+            ORDER BY up.lastUpdated DESC
+        `;
+        
+        db.all(query, [userId], (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
+
+// Add coins to portfolio (buy operation)
+const addToPortfolio = (userId, coinSymbol, coinName, amount, price, fee = 0) => {
+    return new Promise((resolve, reject) => {
+        const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const timestamp = new Date().toISOString();
+        const totalValue = amount * price;
+        
+        // First, check if user already has this coin in portfolio
+        db.get('SELECT * FROM user_portfolio WHERE userId = ? AND coinSymbol = ?', 
+            [userId, coinSymbol], (err, existing) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                if (existing) {
+                    // Update existing portfolio entry
+                    const newBalance = existing.balance + amount;
+                    const newTotalInvested = existing.totalInvested + totalValue;
+                    const newAveragePrice = newTotalInvested / newBalance;
+                    
+                    db.run(`
+                        UPDATE user_portfolio 
+                        SET balance = ?, averageBuyPrice = ?, totalInvested = ?, lastUpdated = ?
+                        WHERE userId = ? AND coinSymbol = ?
+                    `, [newBalance, newAveragePrice, newTotalInvested, timestamp, userId, coinSymbol], function(err) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        
+                        // Add transaction record
+                        addPortfolioTransaction(transactionId, userId, coinSymbol, 'buy', amount, price, totalValue, fee, newBalance, timestamp)
+                            .then(() => resolve({ success: true, newBalance, averagePrice: newAveragePrice }))
+                            .catch(reject);
+                    });
+                } else {
+                    // Create new portfolio entry
+                    const portfolioId = `portfolio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                    
+                    db.run(`
+                        INSERT INTO user_portfolio (id, userId, coinSymbol, coinName, balance, averageBuyPrice, totalInvested, lastUpdated, createdAt)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    `, [portfolioId, userId, coinSymbol, coinName, amount, price, totalValue, timestamp, timestamp], function(err) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        
+                        // Add transaction record
+                        addPortfolioTransaction(transactionId, userId, coinSymbol, 'buy', amount, price, totalValue, fee, amount, timestamp)
+                            .then(() => resolve({ success: true, newBalance: amount, averagePrice: price }))
+                            .catch(reject);
+                    });
+                }
+            });
+    });
+};
+
+// Remove coins from portfolio (sell operation)
+const removeFromPortfolio = (userId, coinSymbol, amount, price, fee = 0) => {
+    return new Promise((resolve, reject) => {
+        const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const timestamp = new Date().toISOString();
+        const totalValue = amount * price;
+        
+        // Check if user has enough coins
+        db.get('SELECT * FROM user_portfolio WHERE userId = ? AND coinSymbol = ?', 
+            [userId, coinSymbol], (err, existing) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                
+                if (!existing || existing.balance < amount) {
+                    reject(new Error('Insufficient coins in portfolio'));
+                    return;
+                }
+                
+                const newBalance = existing.balance - amount;
+                
+                if (newBalance === 0) {
+                    // Remove portfolio entry completely
+                    db.run('DELETE FROM user_portfolio WHERE userId = ? AND coinSymbol = ?', 
+                        [userId, coinSymbol], function(err) {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            
+                            // Add transaction record
+                            addPortfolioTransaction(transactionId, userId, coinSymbol, 'sell', amount, price, totalValue, fee, 0, timestamp)
+                                .then(() => resolve({ success: true, newBalance: 0, soldAmount: amount }))
+                                .catch(reject);
+                        });
+                } else {
+                    // Update portfolio entry
+                    db.run(`
+                        UPDATE user_portfolio 
+                        SET balance = ?, lastUpdated = ?
+                        WHERE userId = ? AND coinSymbol = ?
+                    `, [newBalance, timestamp, userId, coinSymbol], function(err) {
+                        if (err) {
+                            reject(err);
+                            return;
+                        }
+                        
+                        // Add transaction record
+                        addPortfolioTransaction(transactionId, userId, coinSymbol, 'sell', amount, price, totalValue, fee, newBalance, timestamp)
+                            .then(() => resolve({ success: true, newBalance, soldAmount: amount }))
+                            .catch(reject);
+                    });
+                }
+            });
+    });
+};
+
+// Update portfolio balance (for price updates)
+const updatePortfolioBalance = (userId, coinSymbol, newBalance) => {
+    return new Promise((resolve, reject) => {
+        const timestamp = new Date().toISOString();
+        
+        db.run(`
+            UPDATE user_portfolio 
+            SET balance = ?, lastUpdated = ?
+            WHERE userId = ? AND coinSymbol = ?
+        `, [newBalance, timestamp, userId, coinSymbol], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({ success: true, updatedRows: this.changes });
+            }
+        });
+    });
+};
+
+// Add portfolio transaction record
+const addPortfolioTransaction = (transactionId, userId, coinSymbol, transactionType, amount, price, totalValue, fee, balance, timestamp) => {
+    return new Promise((resolve, reject) => {
+        db.run(`
+            INSERT INTO portfolio_transactions (id, userId, coinSymbol, transactionType, amount, price, totalValue, fee, balance, timestamp, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [transactionId, userId, coinSymbol, transactionType, amount, price, totalValue, fee, balance, timestamp, 'completed'], function(err) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({ success: true, transactionId });
+            }
+        });
+    });
+};
+
+// Get portfolio transaction by ID
+const getPortfolioTransaction = (transactionId) => {
+    return new Promise((resolve, reject) => {
+        db.get('SELECT * FROM portfolio_transactions WHERE id = ?', [transactionId], (err, row) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(row);
+            }
+        });
+    });
+};
+
+// Get user's portfolio transactions
+const getPortfolioTransactions = (userId, filters = {}) => {
+    return new Promise((resolve, reject) => {
+        let query = 'SELECT * FROM portfolio_transactions WHERE userId = ?';
+        const params = [userId];
+        
+        if (filters.coinSymbol) {
+            query += ' AND coinSymbol = ?';
+            params.push(filters.coinSymbol);
+        }
+        
+        if (filters.transactionType) {
+            query += ' AND transactionType = ?';
+            params.push(filters.transactionType);
+        }
+        
+        if (filters.startDate) {
+            query += ' AND timestamp >= ?';
+            params.push(filters.startDate);
+        }
+        
+        if (filters.endDate) {
+            query += ' AND timestamp <= ?';
+            params.push(filters.endDate);
+        }
+        
+        query += ' ORDER BY timestamp DESC';
+        
+        if (filters.limit) {
+            query += ' LIMIT ?';
+            params.push(filters.limit);
+        }
+        
+        db.all(query, params, (err, rows) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(rows);
+            }
+        });
+    });
+};
+
+// Get total portfolio value
+const getPortfolioValue = (userId) => {
+    return new Promise((resolve, reject) => {
+        const query = `
+            SELECT 
+                SUM(up.balance * c.price) as totalValue,
+                SUM(up.totalInvested) as totalInvested,
+                COUNT(*) as coinCount
+            FROM user_portfolio up
+            LEFT JOIN coins c ON up.coinSymbol = c.symbol
+            WHERE up.userId = ? AND up.balance > 0
+        `;
+        
+        db.get(query, [userId], (err, row) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve({
+                    totalValue: row.totalValue || 0,
+                    totalInvested: row.totalInvested || 0,
+                    coinCount: row.coinCount || 0,
+                    profitLoss: (row.totalValue || 0) - (row.totalInvested || 0)
+                });
+            }
+        });
+    });
+};
+
 // Close database connection
 const closeDatabase = () => {
     return new Promise((resolve, reject) => {
@@ -895,6 +1231,7 @@ module.exports = {
     updateUserLastLogin,
     createAccount,
     getAccountByUserId,
+    updateAccount,
     saveCoin,
     getAllCoins,
     getCoinById,
@@ -923,5 +1260,14 @@ module.exports = {
     // Activity log operations
     logActivity,
     getActivityLog,
+    // Portfolio operations
+    getUserPortfolio,
+    addToPortfolio,
+    removeFromPortfolio,
+    updatePortfolioBalance,
+    getPortfolioTransaction,
+    addPortfolioTransaction,
+    getPortfolioTransactions,
+    getPortfolioValue,
     closeDatabase
 };

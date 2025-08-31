@@ -1,0 +1,488 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    color: #000000;
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+}
+
+.app-container {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    background: #ffffff;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #E5E5E7;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #8E8E93;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.icon-btn:hover {
+    background: #F2F2F7;
+}
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+    padding-bottom: 100px;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Welcome Section */
+.welcome-section {
+    margin-bottom: 32px;
+}
+
+.welcome-card {
+    background: #F2F2F7;
+    border-radius: 16px;
+    padding: 32px 24px;
+    border: 1px solid #E5E5E7;
+    text-align: center;
+}
+
+.welcome-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #4A88FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: #ffffff;
+}
+
+.welcome-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 12px;
+}
+
+.welcome-text {
+    font-size: 16px;
+    color: #8E8E93;
+    line-height: 1.5;
+}
+
+/* Section Headers */
+.section-header {
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+}
+
+/* Why Support Section */
+.why-support-section {
+    margin-bottom: 32px;
+}
+
+.support-reasons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.reason-item {
+    background: #ffffff;
+    border: 1px solid #E5E5E7;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all 0.2s ease;
+}
+
+.reason-item:hover {
+    border-color: #4A88FF;
+    background: #F2F2F7;
+}
+
+.reason-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #4A88FF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.reason-item:nth-child(2) .reason-icon {
+    background: #FF6B35;
+}
+
+.reason-item:nth-child(3) .reason-icon {
+    background: #00C853;
+}
+
+.reason-item:nth-child(4) .reason-icon {
+    background: #9C27B0;
+}
+
+.reason-item:nth-child(5) .reason-icon {
+    background: #FF9800;
+}
+
+.reason-item:nth-child(6) .reason-icon {
+    background: #E91E63;
+}
+
+.reason-content h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 4px;
+}
+
+.reason-content p {
+    font-size: 14px;
+    color: #8E8E93;
+    line-height: 1.4;
+}
+
+/* Contact Section */
+.contact-section {
+    margin-bottom: 32px;
+}
+
+.contact-methods {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #ffffff;
+}
+
+.contact-method {
+    background: #ffffff;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-bottom: 1px solid #E5E5E7;
+}
+
+.contact-method:last-child {
+    border-bottom: none;
+}
+
+.contact-method:hover {
+    background: #F2F2F7;
+}
+
+.contact-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #ffffff;
+    flex-shrink: 0;
+}
+
+.contact-icon.telegram {
+    background: #0088CC;
+}
+
+.contact-icon.email {
+    background: #FF6B35;
+}
+
+.contact-icon.chat {
+    background: #00C853;
+}
+
+.contact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.contact-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 2px;
+}
+
+.contact-description {
+    font-size: 14px;
+    color: #8E8E93;
+}
+
+.contact-arrow {
+    color: #8E8E93;
+    font-size: 16px;
+}
+
+/* Hours Section */
+.hours-section {
+    margin-bottom: 32px;
+}
+
+.hours-card {
+    background: #F2F2F7;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #E5E5E7;
+}
+
+.hours-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #E5E5E7;
+}
+
+.hours-item:last-child {
+    border-bottom: none;
+}
+
+.day {
+    font-size: 14px;
+    color: #000000;
+    font-weight: 500;
+}
+
+.time {
+    font-size: 14px;
+    color: #8E8E93;
+    font-weight: 500;
+}
+
+.hours-note {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #E5E5E7;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #4A88FF;
+}
+
+.hours-note i {
+    font-size: 16px;
+}
+
+/* FAQ Section */
+.faq-section {
+    margin-bottom: 32px;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #ffffff;
+}
+
+.faq-item {
+    background: #ffffff;
+    border-bottom: 1px solid #E5E5E7;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.faq-item:last-child {
+    border-bottom: none;
+}
+
+.faq-item:hover {
+    background: #F2F2F7;
+}
+
+.faq-question {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 500;
+    color: #000000;
+}
+
+.faq-question i {
+    color: #8E8E93;
+    transition: transform 0.2s ease;
+}
+
+.faq-item.active .faq-question i {
+    transform: rotate(180deg);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+    background: #F2F2F7;
+}
+
+.faq-item.active .faq-answer {
+    max-height: 200px;
+}
+
+.faq-answer p {
+    padding: 0 20px 20px;
+    font-size: 14px;
+    color: #8E8E93;
+    line-height: 1.5;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 300px;
+}
+
+.toast {
+    background: #F2F2F7;
+    color: #000000;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+    border-left: 4px solid #00C853;
+}
+
+.toast.error {
+    border-left: 4px solid #FF453A;
+}
+
+.toast.info {
+    border-left: 4px solid #4A88FF;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 414px) {
+    .main-content {
+        padding: 16px;
+    }
+
+    .header {
+        padding: 12px 16px;
+    }
+
+    .welcome-card {
+        padding: 24px 20px;
+    }
+
+    .welcome-title {
+        font-size: 20px;
+    }
+
+    .reason-item {
+        padding: 16px;
+    }
+
+    .contact-method {
+        padding: 16px;
+    }
+
+    .hours-card {
+        padding: 16px;
+    }
+
+    .faq-question {
+        padding: 16px;
+    }
+
+    .faq-answer p {
+        padding: 0 16px 16px;
+    }
+}
+
+/* Focus states for accessibility */
+.icon-btn:focus,
+.contact-method:focus,
+.faq-item:focus {
+    outline: 2px solid #4A88FF;
+    outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+    background: #4A88FF;
+    color: #ffffff;
+}

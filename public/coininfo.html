@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Загрузка... - SellBit</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <link rel="stylesheet" href="coininfo.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="logos.js"></script>
+    <script src="api-utils.js"></script>
+    <script src="pwa.js"></script>
+</head>
+<body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <div class="coin-info">
+                    <div class="coin-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="coin-details">
+                        <h1 class="coin-name">Загрузка...</h1>
+                        <span class="coin-symbol">...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button class="icon-btn">
+                    <i class="fas fa-share"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Price Section -->
+            <section class="price-section">
+                <div class="price-card">
+                    <div class="current-price">
+                        <span class="price-amount" id="currentPrice">$0.00</span>
+                        <span class="price-change" id="priceChange">
+                            <i class="fas fa-minus"></i>
+                            $0.00 (0.00%)
+                        </span>
+                    </div>
+                    <div class="price-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">24ч объем</span>
+                            <span class="stat-value">$0.0B</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Рыночная кап.</span>
+                            <span class="stat-value">$0.0B</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Циркулирующее</span>
+                            <span class="stat-value">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Chart Section -->
+            <section class="chart-section">
+                <div class="chart-header">
+                    <h2>График цены</h2>
+                    <div class="time-controls">
+                        <button class="time-btn active" data-period="1D">1Д</button>
+                        <button class="time-btn" data-period="1W">1Н</button>
+                        <button class="time-btn" data-period="1M">1М</button>
+                        <button class="time-btn" data-period="3M">3М</button>
+                        <button class="time-btn" data-period="1Y">1Г</button>
+                        <button class="time-btn" data-period="ALL">Все</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Staking Button -->
+            <section class="action-section">
+                <div class="staking-button-container">
+                    <button class="staking-btn" onclick="openStakeModal()">
+                        <div class="staking-btn-content">
+                            <i class="fas fa-chart-line"></i>
+                            <div class="staking-btn-text">
+                                <span class="staking-title">Стейкинг</span>
+                                <span class="staking-subtitle">Ставка на рост/падение</span>
+                            </div>
+                        </div>
+                        <div class="staking-btn-arrow">
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </button>
+                </div>
+                <div class="active-stakes-link">
+                    <button class="active-stakes-btn" onclick="openActiveStakesModal()">
+                        <i class="fas fa-clock"></i>
+                        <span>Активные ставки</span>
+                        <span class="stakes-count" id="stakesCount">0</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section class="about-section">
+                <div class="section-header">
+                    <h2>О Bitcoin</h2>
+                </div>
+                <div class="about-content">
+                    <p>Bitcoin (BTC) - первая и самая известная криптовалюта, созданная в 2009 году Сатоши Накамото. Это децентрализованная цифровая валюта, которая работает на технологии блокчейн.</p>
+                    
+                    <div class="about-stats">
+                        <div class="about-stat">
+                            <span class="stat-label">Алгоритм</span>
+                            <span class="stat-value">SHA-256</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-label">Максимум</span>
+                            <span class="stat-value">21,000,000 BTC</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-label">Время блока</span>
+                            <span class="stat-value">~10 минут</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-label">Создатель</span>
+                            <span class="stat-value">Satoshi Nakamoto</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+                            <button class="nav-btn" onclick="window.location.href='home.html'">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+                            <button class="nav-btn active" onclick="window.location.href='coins.html'">
+                <i class="fas fa-coins"></i>
+                <span>Монеты</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='news.html'">
+                <i class="fas fa-newspaper"></i>
+                <span>Новости</span>
+            </button>
+
+            <button class="nav-btn" onclick="window.location.href='setting.html'">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Staking Modal -->
+    <div class="modal" id="stakeModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="stakeModalTitle">Стейкинг - Ставка на рост</h3>
+                <button class="icon-btn" onclick="closeModal('stakeModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Account Balance Display -->
+                <div class="balance-display">
+                    <div class="balance-item">
+                        <span class="balance-label">Баланс аккаунта:</span>
+                        <span class="balance-value" id="accountBalance">$0.00</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Текущая цена:</span>
+                        <span class="balance-value" id="currentPriceDisplay">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Direction Selection -->
+                <div class="direction-section">
+                    <label class="section-label">Выберите направление:</label>
+                    <div class="direction-buttons">
+                        <button type="button" class="direction-btn active" data-direction="up" onclick="selectDirection('up')">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Рост</span>
+                        </button>
+                        <button type="button" class="direction-btn" data-direction="down" onclick="selectDirection('down')">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Падение</span>
+                        </button>
+                    </div>
+                </div>
+
+                <form id="stakeForm">
+                    <div class="amount-input-container">
+                        <label class="amount-label">Сумма ставки (USD)</label>
+                        <input type="number" id="stakeAmount" class="amount-input" placeholder="10.00" min="10" step="0.01" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Время ставки</label>
+                        <div class="time-selector">
+                            <button type="button" class="time-option active" data-value="0.083" data-time="5 минут">
+                                <span class="time-value">5</span>
+                                <span class="time-unit">мин</span>
+                            </button>
+                            <button type="button" class="time-option" data-value="1" data-time="1 час">
+                                <span class="time-value">1</span>
+                                <span class="time-unit">час</span>
+                            </button>
+                            <button type="button" class="time-option" data-value="3" data-time="3 часа">
+                                <span class="time-value">3</span>
+                                <span class="time-unit">часа</span>
+                            </button>
+                            <button type="button" class="time-option" data-value="6" data-time="6 часов">
+                                <span class="time-value">6</span>
+                                <span class="time-unit">часов</span>
+                            </button>
+                            <button type="button" class="time-option" data-value="12" data-time="12 часов">
+                                <span class="time-value">12</span>
+                                <span class="time-unit">часов</span>
+                            </button>
+                            <button type="button" class="time-option" data-value="24" data-time="24 часа">
+                                <span class="time-value">24</span>
+                                <span class="time-unit">часа</span>
+                            </button>
+                        </div>
+                        <input type="hidden" id="stakeTime" value="0.083">
+                    </div>
+
+                    <!-- Potential Results -->
+                    <div class="potential-results">
+                        <div class="result-item">
+                            <span class="result-label">При победе:</span>
+                            <span class="result-value positive" id="potentialWin">$0.00</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">При проигрыше:</span>
+                            <span class="result-value negative" id="potentialLoss">$0.00</span>
+                        </div>
+                    </div>
+
+
+
+                    <button type="submit" class="trade-btn primary" id="stakeSubmitBtn">Создать ставку на рост</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Stakes Modal -->
+    <div class="modal" id="activeStakesModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Активные ставки</h3>
+                <button class="icon-btn" onclick="closeModal('activeStakesModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="activeStakesList">
+                    <!-- Active stakes will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="balance-sync.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="coininfo.js"></script>
+</body>
+</html>

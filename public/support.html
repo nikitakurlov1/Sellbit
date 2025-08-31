@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Техническая поддержка - SellBit</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <link rel="stylesheet" href="support.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="page-title">Техническая поддержка</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <div class="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h2 class="welcome-title">Как мы можем помочь?</h2>
+                    <p class="welcome-text">Наша команда поддержки готова ответить на ваши вопросы и решить любые проблемы 24/7</p>
+                </div>
+            </section>
+
+            <!-- Why Support Section -->
+            <section class="why-support-section">
+                <div class="section-header">
+                    <h2>Зачем нужна техническая поддержка?</h2>
+                </div>
+                <div class="support-reasons">
+                    <div class="reason-item">
+                        <div class="reason-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="reason-content">
+                            <h3>Безопасность</h3>
+                            <p>Помощь в защите вашего аккаунта и средств от мошенников</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reason-item">
+                        <div class="reason-icon">
+                            <i class="fas fa-question-circle"></i>
+                        </div>
+                        <div class="reason-content">
+                            <h3>Консультации</h3>
+                            <p>Ответы на вопросы по работе с платформой и криптовалютами</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reason-item">
+                        <div class="reason-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="reason-content">
+                            <h3>Решение проблем</h3>
+                            <p>Быстрое устранение технических неполадок и ошибок</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reason-item">
+                        <div class="reason-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="reason-content">
+                            <h3>Время обработки</h3>
+                            <p>Ускорение обработки заявок на пополнение и вывод средств</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reason-item">
+                        <div class="reason-icon">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="reason-content">
+                            <h3>Верификация</h3>
+                            <p>Помощь в прохождении процедуры верификации аккаунта</p>
+                        </div>
+                    </div>
+                    
+                    <div class="reason-item">
+                        <div class="reason-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="reason-content">
+                            <h3>Торговля</h3>
+                            <p>Консультации по торговле и инвестированию в криптовалюты</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contact Methods Section -->
+            <section class="contact-section">
+                <div class="section-header">
+                    <h2>Способы связи</h2>
+                </div>
+                <div class="contact-methods">
+                    <div class="contact-method" onclick="contactSupport('telegram')">
+                        <div class="contact-icon telegram">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-name">Telegram</div>
+                            <div class="contact-description">Быстрая связь 24/7</div>
+                        </div>
+                        <div class="contact-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-method" onclick="contactSupport('email')">
+                        <div class="contact-icon email">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-name">Email</div>
+                            <div class="contact-description">Подробные вопросы</div>
+                        </div>
+                        <div class="contact-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-method" onclick="contactSupport('chat')">
+                        <div class="contact-icon chat">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="contact-info">
+                            <div class="contact-name">Онлайн чат</div>
+                            <div class="contact-description">Мгновенная помощь</div>
+                        </div>
+                        <div class="contact-arrow">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Working Hours Section -->
+            <section class="hours-section">
+                <div class="section-header">
+                    <h2>Часы работы поддержки</h2>
+                </div>
+                <div class="hours-card">
+                    <div class="hours-item">
+                        <div class="day">Понедельник - Пятница</div>
+                        <div class="time">9:00 - 18:00 (МСК)</div>
+                    </div>
+                    <div class="hours-item">
+                        <div class="day">Суббота - Воскресенье</div>
+                        <div class="time">10:00 - 16:00 (МСК)</div>
+                    </div>
+                    <div class="hours-note">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Telegram поддержка работает круглосуточно</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="faq-section">
+                <div class="section-header">
+                    <h2>Часто задаваемые вопросы</h2>
+                </div>
+                <div class="faq-list">
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Как пополнить баланс?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Перейдите в раздел "Пополнение", выберите способ оплаты, введите сумму и следуйте инструкциям. После оплаты отправьте чек в поддержку.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Сколько времени занимает вывод средств?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Обработка заявки на вывод занимает 1-3 рабочих дня. Срок зависит от выбранного способа вывода и загруженности системы.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Как пройти верификацию?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Загрузите документы в разделе "Профиль" → "Верификация". Поддерживаются паспорт, водительские права или ID-карта.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Какие комиссии за вывод?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            <p>Комиссия составляет 2.5% от суммы вывода. Минимальная сумма для вывода - $10. Точная комиссия отображается при создании заявки.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+                            <button class="nav-btn" onclick="window.location.href='home.html'">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='coins.html'">
+                <i class="fas fa-coins"></i>
+                <span>Монеты</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='news.html'">
+                <i class="fas fa-newspaper"></i>
+                <span>Новости</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='home.html'">
+                <i class="fas fa-history"></i>
+                <span>История</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='setting.html'">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="support.js"></script>
+</body>
+
+</html>

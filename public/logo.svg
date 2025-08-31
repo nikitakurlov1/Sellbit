@@ -6,8 +6,8 @@
     <polygon points="260,90 310,70 290,120" fill="#2a8cff"/>
   </g>
 
-  <!-- Текст SaleTrade -->
+      <!-- Текст SellBit -->
   <text x="200" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="#2a8cff">
-    SaleTrade
+          SellBit
   </text>
 </svg>

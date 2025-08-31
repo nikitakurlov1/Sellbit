@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Пополнение баланса - SellBit</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <link rel="stylesheet" href="Dep.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="page-title">Пополнение баланса</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Amount Section -->
+            <section class="amount-section">
+                <div class="amount-card">
+                    <div class="amount-header">
+                        <span class="amount-label">Сумма пополнения</span>
+                    </div>
+                    <div class="amount-input-container">
+                        <input type="number" id="depositAmount" class="amount-input" placeholder="0.00" min="1" step="0.01">
+                    </div>
+                    <div class="currency-selector">
+                        <button class="currency-btn active" data-currency="USD" onclick="selectCurrency('USD')">
+                            <span class="currency-symbol">$</span>
+                            <span class="currency-code">USD</span>
+                        </button>
+                        <button class="currency-btn" data-currency="EUR" onclick="selectCurrency('EUR')">
+                            <span class="currency-symbol">€</span>
+                            <span class="currency-code">EUR</span>
+                        </button>
+                        <button class="currency-btn" data-currency="RUB" onclick="selectCurrency('RUB')">
+                            <span class="currency-symbol">₽</span>
+                            <span class="currency-code">RUB</span>
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Payment Method Section -->
+            <section class="payment-section">
+                <div class="section-header">
+                    <h2>Способ оплаты</h2>
+                </div>
+                <div class="payment-methods">
+                    <div class="payment-method" data-method="card">
+                        <div class="method-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="method-info">
+                            <div class="method-name">Банковская карта</div>
+                            <div class="method-description">Visa, MasterCard, МИР</div>
+                        </div>
+                        <div class="method-radio">
+                            <input type="radio" name="paymentMethod" value="card" checked>
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method" data-method="crypto">
+                        <div class="method-icon">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                        <div class="method-info">
+                            <div class="method-name">Криптовалюта</div>
+                            <div class="method-description">BTC, ETH, USDT</div>
+                        </div>
+                        <div class="method-radio">
+                            <input type="radio" name="paymentMethod" value="crypto">
+                        </div>
+                    </div>
+                    
+                    <div class="payment-method" data-method="transfer">
+                        <div class="method-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="method-info">
+                            <div class="method-name">Банковский перевод</div>
+                            <div class="method-description">СБП, SWIFT</div>
+                        </div>
+                        <div class="method-radio">
+                            <input type="radio" name="paymentMethod" value="transfer">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payment Details Section -->
+            <section class="details-section" id="paymentDetails">
+                <div class="section-header">
+                    <h2>Реквизиты для оплаты</h2>
+                </div>
+                
+                <!-- Card Payment Details -->
+                <div class="payment-details" id="cardDetails">
+                    <div class="requisite-item">
+                        <div class="requisite-label">Номер карты</div>
+                        <div class="requisite-value">
+                            <span>4276 1600 1234 5678</span>
+                            <button class="copy-btn" onclick="copyToClipboard('4276 1600 1234 5678')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">Получатель</div>
+                        <div class="requisite-value">
+                            <span>ООО "СейлБит"</span>
+                            <button class="copy-btn" onclick="copyToClipboard('ООО &quot;СейлБит&quot;')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">Комментарий к платежу</div>
+                        <div class="requisite-value">
+                            <span id="paymentComment">DEP-123456</span>
+                            <button class="copy-btn" onclick="copyToClipboard(document.getElementById('paymentComment').textContent)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Crypto Payment Details -->
+                <div class="payment-details" id="cryptoDetails" style="display: none;">
+                    <div class="requisite-item">
+                        <div class="requisite-label">BTC адрес</div>
+                        <div class="requisite-value">
+                            <span>bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</span>
+                            <button class="copy-btn" onclick="copyToClipboard('bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">ETH адрес</div>
+                        <div class="requisite-value">
+                            <span>0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6</span>
+                            <button class="copy-btn" onclick="copyToClipboard('0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">USDT (TRC20)</div>
+                        <div class="requisite-value">
+                            <span>TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t</span>
+                            <button class="copy-btn" onclick="copyToClipboard('TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transfer Payment Details -->
+                <div class="payment-details" id="transferDetails" style="display: none;">
+                    <div class="requisite-item">
+                        <div class="requisite-label">Банк</div>
+                        <div class="requisite-value">
+                            <span>ПАО Сбербанк</span>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">ИНН</div>
+                        <div class="requisite-value">
+                            <span>7707083893</span>
+                            <button class="copy-btn" onclick="copyToClipboard('7707083893')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">КПП</div>
+                        <div class="requisite-value">
+                            <span>770701001</span>
+                            <button class="copy-btn" onclick="copyToClipboard('770701001')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">Расчетный счет</div>
+                        <div class="requisite-value">
+                            <span>40702810123456789012</span>
+                            <button class="copy-btn" onclick="copyToClipboard('40702810123456789012')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">БИК</div>
+                        <div class="requisite-value">
+                            <span>044525225</span>
+                            <button class="copy-btn" onclick="copyToClipboard('044525225')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="requisite-item">
+                        <div class="requisite-label">Корр. счет</div>
+                        <div class="requisite-value">
+                            <span>30101810400000000225</span>
+                            <button class="copy-btn" onclick="copyToClipboard('30101810400000000225')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Receipt Upload Section -->
+            <section class="receipt-section">
+                <div class="section-header">
+                    <h2>Отправить чек</h2>
+                </div>
+                <div class="receipt-card">
+                    <div class="receipt-upload">
+                        <div class="upload-area" id="uploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Нажмите для загрузки чека</p>
+                            <span>PNG, JPG до 5 МБ</span>
+                        </div>
+                        <input type="file" id="receiptFile" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="receipt-help">
+                        <p>Или отправьте чек в <a href="https://t.me/SaleBitAdmin" target="_blank" class="telegram-link">
+                            <i class="fab fa-telegram"></i>
+                            Telegram
+                        </a></p>
+                    </div>
+                    <div class="receipt-preview" id="receiptPreview" style="display: none;">
+                        <img id="previewImage" src="" alt="Предварительный просмотр">
+                        <button class="remove-btn" onclick="removeReceipt()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Submit Button -->
+            <section class="submit-section">
+                <button class="submit-btn" onclick="submitDeposit()">
+                    <i class="fas fa-paper-plane"></i>
+                    Отправить заявку
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+                        <button class="nav-btn" onclick="window.location.href='home.html'">
+            <i class="fas fa-home"></i>
+            <span>Главная</span>
+        </button>
+                    <button class="nav-btn" onclick="window.location.href='coins.html'">
+            <i class="fas fa-coins"></i>
+            <span>Монеты</span>
+        </button>
+        <button class="nav-btn" onclick="window.location.href='news.html'">
+            <i class="fas fa-newspaper"></i>
+            <span>Новости</span>
+        </button>
+
+        <button class="nav-btn" onclick="window.location.href='setting.html'">
+            <i class="fas fa-cog"></i>
+            <span>Настройки</span>
+        </button>
+    </nav>
+
+    <script src="Dep.js"></script>
+</body>
+
+</html>

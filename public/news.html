@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Новости - SellBit</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <link rel="stylesheet" href="news.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="page-title">Новости</h1>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn refresh-btn" onclick="refreshNews()" title="Обновить">
+                    <i class="fas fa-rotate"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Featured News -->
+            <section class="featured-section">
+                <div class="section-header">
+                    <h2>Важные новости</h2>
+                </div>
+                <div class="featured-news" id="featuredNews"></div>
+            </section>
+
+            <!-- Categories -->
+            <section class="categories-section">
+                <div class="section-header">
+                    <h2>Категории</h2>
+                </div>
+                <div class="categories-grid">
+                    <button class="category-btn active" data-category="all" onclick="filterNews('all')">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Все</span>
+                    </button>
+                    <button class="category-btn" data-category="bitcoin" onclick="filterNews('bitcoin')">
+                        <i class="fab fa-bitcoin"></i>
+                        <span>Bitcoin</span>
+                    </button>
+                    <button class="category-btn" data-category="ethereum" onclick="filterNews('ethereum')">
+                        <i class="fab fa-ethereum"></i>
+                        <span>Ethereum</span>
+                    </button>
+                    <button class="category-btn" data-category="regulation" onclick="filterNews('regulation')">
+                        <i class="fas fa-scale-balanced"></i>
+                        <span>Регулирование</span>
+                    </button>
+                    <button class="category-btn" data-category="defi" onclick="filterNews('defi')">
+                        <i class="fas fa-coins"></i>
+                        <span>DeFi</span>
+                    </button>
+                    <button class="category-btn" data-category="nft" onclick="filterNews('nft')">
+                        <i class="fas fa-image"></i>
+                        <span>NFT</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- All News -->
+            <section class="all-news-section">
+                <div class="section-header">
+                    <h2>Все новости</h2>
+                    <div class="sort-controls">
+                        <button class="sort-btn active" data-sort="latest" onclick="sortNews('latest')">
+                            <i class="fas fa-clock"></i>
+                            Последние
+                        </button>
+                        <button class="sort-btn" data-sort="popular" onclick="sortNews('popular')">
+                            <i class="fas fa-fire"></i>
+                            Популярные
+                        </button>
+                    </div>
+                </div>
+                <div class="news-list" id="newsList"></div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn" onclick="window.location.href='home.html'">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='coins.html'">
+                <i class="fas fa-coins"></i>
+                <span>Монеты</span>
+            </button>
+            <button class="nav-btn active">
+                <i class="fas fa-newspaper"></i>
+                <span>Новости</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='setting.html'">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="news.js"></script>
+</body>
+
+</html>
+
+

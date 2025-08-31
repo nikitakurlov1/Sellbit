@@ -39,7 +39,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #2d3748;
 }
@@ -762,7 +762,7 @@ body {
 
 @media (max-width: 480px) {
     .page-title h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .stat-card {
@@ -770,7 +770,7 @@ body {
     }
     
     .stat-value {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
     }
     
     .modal-header,
@@ -783,25 +783,30 @@ body {
 .coin-logo {
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease;
-}
-
-.coin-logo:hover {
-    transform: scale(1.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Убрали анимации */
 }
 
 .coin-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     font-weight: bold;
-    font-size: 14px;
-    margin-right: 12px;
+    font-size: 10px;
+    margin-right: 8px;
     flex-shrink: 0;
+    overflow: hidden;
+}
+
+/* Стили для SVG логотипов в управлении монетами */
+.coin-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }

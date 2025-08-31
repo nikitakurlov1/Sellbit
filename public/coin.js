@@ -6,6 +6,49 @@ let currentPage = 1;
 let itemsPerPage = 10;
 let filteredCoins = [];
 
+// Export functions for global access immediately
+window.editCoin = function(coinId) {
+    console.log('editCoin called with coinId:', coinId);
+    console.log('Current window.location:', window.location.href);
+    console.log('Redirecting to:', `/crmcoindetal.html?id=${coinId}`);
+    
+    // Redirect to coin detail page
+    window.location.href = `/crmcoindetal.html?id=${coinId}`;
+};
+
+// Проверяем, что функция экспортирована
+console.log('editCoin function exported:', typeof window.editCoin);
+
+window.deleteCoin = async function(coinId) {
+    console.log('deleteCoin called with coinId:', coinId);
+    if (!confirm('Вы уверены, что хотите удалить эту монету?')) {
+        return;
+    }
+
+    try {
+        showLoading(true);
+        const response = await api.delete(`/api/coins/${coinId}`, {
+            headers: {
+                'Authorization': `Bearer ${authToken}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            showNotification('Успешно!', 'Монета удалена', 'success');
+            loadCoins(); // Reload coins
+        } else {
+            showNotification('Ошибка!', result.errors.join(', '), 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting coin:', error);
+        showNotification('Ошибка!', 'Не удалось удалить монету', 'error');
+    } finally {
+        showLoading(false);
+    }
+};
+
 // DOM elements
 const addCoinBtn = document.getElementById('addCoinBtn');
 const refreshPricesBtn = document.getElementById('refreshPricesBtn');
@@ -51,7 +94,7 @@ async function checkAuth() {
 
     try {
         // Get current user info and permissions
-        const response = await fetch('/api/user/permissions', {
+        const response = await api.get('/api/user/permissions', {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -68,24 +111,7 @@ async function checkAuth() {
             currentUserElement.textContent = currentUser.user.username;
         }
 
-        // Show/hide admin link based on roles
-        const adminLink = document.getElementById('adminLink');
-        if (adminLink) {
-            console.log('Current user roles:', currentUser.user?.roles);
-            // Show admin link for users with any admin role
-            if (currentUser.user && currentUser.user.roles && 
-                (currentUser.user.roles.includes('Админ') || 
-                 currentUser.user.roles.includes('Аналитик') || 
-                 currentUser.user.roles.includes('Менеджер') || 
-                 currentUser.user.roles.includes('Тим-лидер') || 
-                 currentUser.user.roles.includes('Хед'))) {
-                adminLink.style.display = 'flex';
-                console.log('Admin link shown for admin user');
-            } else {
-                adminLink.style.display = 'none';
-                console.log('Admin link hidden');
-            }
-        }
+
 
     } catch (error) {
         console.error('Error checking auth:', error);
@@ -159,7 +185,7 @@ function hideAddCoinModal() {
 async function loadCoins() {
     try {
         showLoading(true);
-        const response = await fetch('/api/coins', {
+        const response = await api.get('/api/coins', {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -201,13 +227,10 @@ async function handleAddCoin(e) {
 
     try {
         showLoading(true);
-        const response = await fetch('/api/coins', {
-            method: 'POST',
+        const response = await api.post('/api/coins', coinData, {
             headers: {
-                'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`
-            },
-            body: JSON.stringify(coinData)
+            }
         });
 
         const result = await response.json();
@@ -227,41 +250,12 @@ async function handleAddCoin(e) {
     }
 }
 
-async function deleteCoin(coinId) {
-    if (!confirm('Вы уверены, что хотите удалить эту монету?')) {
-        return;
-    }
 
-    try {
-        showLoading(true);
-        const response = await fetch(`/api/coins/${coinId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showNotification('Успешно!', 'Монета удалена', 'success');
-            loadCoins(); // Reload coins
-        } else {
-            showNotification('Ошибка!', result.errors.join(', '), 'error');
-        }
-    } catch (error) {
-        console.error('Error deleting coin:', error);
-        showNotification('Ошибка!', 'Не удалось удалить монету', 'error');
-    } finally {
-        showLoading(false);
-    }
-}
 
 async function handleRefreshPrices() {
     try {
         showLoading(true);
-        const response = await fetch('/api/coins/update-prices', {
-            method: 'POST',
+        const response = await api.post('/api/coins/update-prices', {}, {
             headers: {
                 'Authorization': `Bearer ${authToken}`
             }
@@ -315,6 +309,9 @@ function renderCoins() {
     const endIndex = startIndex + itemsPerPage;
     const coinsToShow = filteredCoins.slice(startIndex, endIndex);
 
+    console.log('Rendering coins:', coinsToShow.length);
+    console.log('Sample coin:', coinsToShow[0]);
+
     coinsTableBody.innerHTML = '';
 
     if (coinsToShow.length === 0) {
@@ -332,14 +329,16 @@ function renderCoins() {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>
-                <input type="checkbox" value="${coin.id}">
+                <input type="checkbox" class="coin-checkbox" value="${coin.id}">
             </td>
             <td>
                 <div class="coin-info">
-                    <div class="coin-icon" data-coin-logo="${coin.id}" data-logo-size="32" data-logo-class="coin-logo"></div>
+                    <div class="coin-logo" data-coin-id="${coin.id}">
+                        <i class="fas fa-coins"></i>
+                    </div>
                     <div class="coin-details">
-                        <div class="coin-name">${coin.name}</div>
-                        <div class="coin-symbol">${coin.symbol}</div>
+                        <span class="coin-name">${coin.name}</span>
+                        <span class="coin-symbol">${coin.symbol}</span>
                     </div>
                 </div>
             </td>
@@ -358,15 +357,17 @@ function renderCoins() {
             </td>
             <td>
                 <div class="action-buttons">
-                    <button class="btn btn-edit btn-sm" onclick="editCoin('${coin.id}')">
+                    <button class="btn btn-edit btn-sm" onclick="editCoin('${coin.id}')" title="Редактировать ${coin.name}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-delete btn-sm" onclick="deleteCoin('${coin.id}')">
+                    <button class="btn btn-delete btn-sm" onclick="deleteCoin('${coin.id}')" title="Удалить ${coin.name}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </td>
         `;
+        
+        console.log(`Generated edit button for coin ${coin.id}:`, row.querySelector('.btn-edit').outerHTML);
         coinsTableBody.appendChild(row);
     });
 
@@ -481,15 +482,5 @@ function handleLogout() {
     localStorage.removeItem('user');
     
     showNotification('Информация', 'Вы вышли из аккаунта', 'info');
-    window.location.href = '/';
+    window.location.href = '/index.html';
 }
-
-// Placeholder functions for future implementation
-function editCoin(coinId) {
-    // Redirect to coin detail page
-    window.location.href = `/crmcoindetal.html?id=${coinId}`;
-}
-
-// Export functions for global access
-window.editCoin = editCoin;
-window.deleteCoin = deleteCoin;

@@ -39,7 +39,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     font-weight: 600;
     color: #2d3748;
 }
@@ -766,7 +766,7 @@ body {
 
 @media (max-width: 480px) {
     .page-title h1 {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
     }
     
     .stat-card {
@@ -774,7 +774,7 @@ body {
     }
     
     .stat-value {
-        font-size: 1.25rem;
+        font-size: 1.1rem;
     }
     
     .modal-header,

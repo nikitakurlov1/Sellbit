@@ -1,4 +1,4 @@
-# API Examples - SaleBit
+# API Examples - SellBit
 
 Примеры использования API для интеграции с криптобиржей.
 

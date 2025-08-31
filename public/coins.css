@@ -1,0 +1,629 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #ffffff;
+    color: #000000;
+    min-height: 100vh;
+    overflow-x: hidden;
+    line-height: 1.5;
+    /* Запрет масштабирования */
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.app-container {
+    max-width: 414px;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    background: #ffffff;
+    overflow-x: hidden;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #E5E5E7;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.page-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: #8E8E93;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.icon-btn:hover {
+    background: #F2F2F7;
+}
+
+/* Search Bar */
+.search-bar {
+    padding: 16px 20px;
+    background: #ffffff;
+    border-bottom: 1px solid #E5E5E7;
+}
+
+.search-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 16px;
+    color: #8E8E93;
+    font-size: 16px;
+    z-index: 1;
+}
+
+.search-input {
+    width: 100%;
+    background: #F2F2F7;
+    border: 1px solid #E5E5E7;
+    border-radius: 12px;
+    padding: 12px 16px 12px 48px;
+    font-size: 16px;
+    color: #000000;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.search-input:focus {
+    border-color: #4A88FF;
+}
+
+.search-input::placeholder {
+    color: #8E8E93;
+}
+
+.clear-search {
+    position: absolute;
+    right: 16px;
+    background: transparent;
+    border: none;
+    color: #8E8E93;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.clear-search:hover {
+    background: rgba(142, 142, 147, 0.1);
+}
+
+/* Main Content */
+.main-content {
+    padding: 20px;
+    padding-bottom: 100px;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
+/* Section Headers */
+.section-header {
+    margin-bottom: 20px;
+}
+
+.section-header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 16px;
+}
+
+/* Popular Section */
+.popular-section {
+    margin-bottom: 32px;
+}
+
+.coins-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+    padding: 0 4px;
+}
+
+.coin-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid #E5E5E7;
+    border-radius: 16px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    position: relative;
+    overflow: hidden;
+}
+
+.coin-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #4A88FF, #00C853);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.coin-card:hover {
+    border-color: #4A88FF;
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(74, 136, 255, 0.15);
+}
+
+.coin-card:hover::before {
+    opacity: 1;
+}
+
+.coin-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.coin-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: #ffffff;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: none;
+    /* Убрали анимации */
+}
+
+/* Стили для SVG логотипов */
+.coin-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.coin-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.coin-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #000000;
+    margin-bottom: 2px;
+}
+
+.coin-symbol {
+    font-size: 12px;
+    color: #8E8E93;
+}
+
+.coin-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 8px;
+}
+
+.coin-change {
+    font-size: 14px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 16px;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.coin-change.positive {
+    background: linear-gradient(135deg, rgba(0, 200, 83, 0.1) 0%, rgba(0, 200, 83, 0.2) 100%);
+    color: #00C853;
+    border: 1px solid rgba(0, 200, 83, 0.3);
+}
+
+.coin-change.negative {
+    background: linear-gradient(135deg, rgba(255, 69, 58, 0.1) 0%, rgba(255, 69, 58, 0.2) 100%);
+    color: #FF453A;
+    border: 1px solid rgba(255, 69, 58, 0.3);
+}
+
+/* Убрали hover анимации */
+
+/* All Coins Section */
+.all-coins-section {
+    margin-bottom: 32px;
+}
+
+.sort-controls {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.sort-btn {
+    background: #F2F2F7;
+    border: 1px solid #E5E5E7;
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #8E8E93;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.sort-btn:hover {
+    background: #E5E5E7;
+}
+
+.sort-btn.active {
+    background: #4A88FF;
+    color: #ffffff;
+    border-color: #4A88FF;
+}
+
+.coins-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: #ffffff;
+}
+
+.coin-item {
+    background: #ffffff;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    /* Убрали transition */
+    border-bottom: 1px solid #E5E5E7;
+    position: relative;
+}
+
+.coin-item:last-child {
+    border-bottom: none;
+}
+
+/* Убрали hover эффекты */
+
+.coin-item::after {
+    content: '';
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #E5E5E7;
+    border-top: 2px solid #E5E5E7;
+    transform: translateY(-50%) rotate(45deg);
+    /* Убрали transition */
+}
+
+/* Убрали hover эффекты для стрелки */
+
+.coin-item .coin-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    flex-shrink: 0;
+    overflow: hidden;
+    border: none;
+    /* Убрали анимации */
+}
+
+/* Стили для SVG логотипов в списке */
+.coin-item .coin-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.coin-item .coin-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.coin-item .coin-name {
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.coin-item .coin-symbol {
+    font-size: 14px;
+}
+
+.coin-values {
+    text-align: right;
+}
+
+.coin-item .coin-price {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: #000000;
+}
+
+.coin-item .coin-change {
+    font-size: 14px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    min-width: 60px;
+    text-align: center;
+}
+
+.coin-item .coin-change.positive {
+    background: rgba(0, 200, 83, 0.1);
+    color: #00C853;
+}
+
+.coin-item .coin-change.negative {
+    background: rgba(255, 69, 58, 0.1);
+    color: #FF453A;
+}
+
+.coin-market-cap {
+    font-size: 12px;
+    color: #8E8E93;
+    margin-top: 4px;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 414px;
+    background: #ffffff;
+    border-top: 1px solid #E5E5E7;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    z-index: 1000;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: #8E8E93;
+    padding: 8px 8px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    flex: 1;
+    max-width: 70px;
+}
+
+.nav-btn:hover {
+    background: #F2F2F7;
+}
+
+.nav-btn.active {
+    color: #4A88FF;
+}
+
+.nav-btn i {
+    font-size: 18px;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    max-width: 300px;
+}
+
+.toast {
+    background: #F2F2F7;
+    color: #000000;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+}
+
+.toast.success {
+    border-left: 4px solid #00C853;
+}
+
+.toast.error {
+    border-left: 4px solid #FF453A;
+}
+
+.toast.info {
+    border-left: 4px solid #4A88FF;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 414px) {
+    .main-content {
+        padding: 16px;
+    }
+
+    .header {
+        padding: 12px 16px;
+    }
+
+    .search-bar {
+        padding: 12px 16px;
+    }
+
+    .coins-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+
+    .coin-card {
+        padding: 12px;
+    }
+
+    .sort-controls {
+        flex-wrap: wrap;
+    }
+
+    .sort-btn {
+        padding: 6px 10px;
+        font-size: 9px;
+    }
+
+    .coin-item {
+        padding: 12px;
+    }
+}
+
+/* Focus states for accessibility */
+.icon-btn:focus,
+.search-input:focus,
+.clear-search:focus,
+.sort-btn:focus,
+.coin-card:focus,
+.coin-item:focus,
+.nav-btn:focus {
+    outline: 2px solid #4A88FF;
+    outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+    background: #4A88FF;
+    color: #ffffff;
+}
+
+/* Loading and Empty States */
+.loading-indicator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #8E8E93;
+    gap: 12px;
+}
+
+.loading-indicator i {
+    font-size: 24px;
+    color: #4A88FF;
+}
+
+.loading-indicator span {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #8E8E93;
+    gap: 16px;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 48px;
+    color: #C7C7CC;
+}
+
+.empty-state p {
+    font-size: 16px;
+    font-weight: 500;
+    color: #8E8E93;
+}

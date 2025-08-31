@@ -1,0 +1,53 @@
+const fs = require('fs');
+const path = require('path');
+
+// SVG логотип SellBit
+const sellbitLogoSVG = `
+<svg version="1.0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264 274">
+    <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#E3F2FD;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+    <g transform="translate(0.000000,274.000000) scale(0.100000,-0.100000)" fill="url(#logoGradient)" stroke="none">
+        <path d="M0 1370 l0 -1370 1320 0 1320 0 0 1370 0 1370 -1320 0 -1320 0 0 -1370z m2465 706 c0 -229 -4 -351 -10 -353 -6 -2 -53 36 -105 83 l-94 86 -199 -201 c-111 -113 -209 -204 -223 -207 -14 -4 -83 -5 -155 -2 l-130 4 -41 47 c-55 65 -106 89 -199 95 -91 5 -139 -8 -174 -49 -54 -65 -18 -145 78 -173 29 -8 100 -24 158 -35 127 -24 197 -50 260 -96 98 -72 132 -226 80 -363 -40 -105 -125 -176 -260 -216 -74 -22 -253 -22 -318 0 -176 59 -272 158 -276 284 l-2 45 103 3 103 3 52 -55 c54 -56 120 -86 192 -86 52 0 131 28 164 59 41 38 43 95 6 139 -25 30 -84 48 -315 97 -194 40 -302 171 -287 348 8 91 43 162 111 224 42 39 69 53 142 77 117 37 215 34 347 -11 l87 -29 87 95 c47 53 129 143 182 199 53 57 99 110 103 117 5 8 -26 44 -93 105 -55 51 -96 97 -92 101 9 9 225 15 528 14 l190 0 0 -349z m-930 230 c107 -30 126 -37 123 -52 -2 -8 -28 -46 -58 -85 -53 -67 -56 -70 -90 -65 -157 23 -228 27 -323 18 -240 -24 -454 -147 -602 -347 -64 -86 -94 -145 -131 -255 -27 -80 -28 -95 -29 -255 0 -162 1 -174 29 -255 62 -182 133 -289 273 -409 237 -202 586 -257 873 -138 123 51 190 96 290 197 84 83 103 108 148 200 82 165 96 229 96 456 l1 191 64 67 c36 36 69 65 75 63 12 -4 20 -32 47 -167 27 -134 23 -339 -10 -466 -96 -373 -379 -665 -746 -770 -108 -31 -312 -43 -445 -26 -217 28 -424 132 -592 298 -151 150 -246 324 -295 539 -25 109 -22 347 4 455 29 116 74 229 125 314 178 296 466 479 817 519 50 6 306 -14 356 -27z"/>
+    </g>
+</svg>`;
+
+// Создаем простые PNG иконки с базовым дизайном
+function createSimpleIcon(size) {
+    // Создаем простой SVG с градиентным фоном
+    const svg = `
+    <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#0066CC;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#004499;stop-opacity:1" />
+            </linearGradient>
+        </defs>
+        <rect width="${size}" height="${size}" fill="url(#bg)" rx="${size * 0.1}"/>
+        <text x="${size/2}" y="${size * 0.6}" font-family="Arial, sans-serif" font-size="${size * 0.15}" font-weight="bold" text-anchor="middle" fill="white">SellBit</text>
+        <text x="${size/2}" y="${size * 0.8}" font-family="Arial, sans-serif" font-size="${size * 0.08}" text-anchor="middle" fill="rgba(255,255,255,0.8)">PWA</text>
+    </svg>`;
+    
+    return svg;
+}
+
+// Создаем иконки
+console.log('🎨 Создание иконок PWA для SellBit...');
+
+// Создаем иконку 192x192
+const icon192 = createSimpleIcon(192);
+fs.writeFileSync(path.join(__dirname, 'public', 'icon-192.png'), Buffer.from(icon192));
+
+// Создаем иконку 512x512  
+const icon512 = createSimpleIcon(512);
+fs.writeFileSync(path.join(__dirname, 'public', 'icon-512.png'), Buffer.from(icon512));
+
+console.log('✅ Иконки созданы!');
+console.log('📁 Файлы сохранены в public/');
+console.log('   - icon-192.png');
+console.log('   - icon-512.png');
+console.log('');
+console.log('🚀 Теперь можно тестировать PWA!');

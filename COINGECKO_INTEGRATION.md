@@ -1,4 +1,4 @@
-# 🪙 Интеграция с CoinGecko API - SaleBit
+# 🪙 Интеграция с CoinGecko API - SellBit
 
 ## 📊 Автоматическое обновление цен монет
 

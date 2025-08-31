@@ -2,29 +2,31 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SaleTrade - Вход</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>SellBit - Криптобиржа</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SellBit">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="SellBit">
+    <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="logos.js"></script>
+    <script src="api-utils.js"></script>
+    <script src="pwa-register.js"></script>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-left">
-                <div class="logo">
-                    <img src="logo-small.svg" alt="SaleTrade" width="120" height="36">
-                </div>
-            </div>
-            <div class="header-right">
-                <div class="user-info">
-                    <span>Криптобиржа</span>
-                </div>
-            </div>
-        </header>
+
 
         <!-- Main Content -->
         <main class="main-content">
@@ -49,10 +51,15 @@
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="loginPassword" name="password" required>
-                            <button type="button" class="password-toggle">
-                                <i class="fas fa-eye"></i>
-                            </button>
                         </div>
+                    </div>
+                    
+                    <div class="form-group checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe" name="rememberMe">
+                            <span class="checkmark"></span>
+                            Запомнить меня
+                        </label>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">
@@ -94,9 +101,6 @@
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="registerPassword" name="password" required>
-                            <button type="button" class="password-toggle">
-                                <i class="fas fa-eye"></i>
-                            </button>
                         </div>
                     </div>
                     
@@ -105,9 +109,6 @@
                         <div class="input-wrapper">
                             <i class="fas fa-lock"></i>
                             <input type="password" id="confirmPassword" name="confirmPassword" required>
-                            <button type="button" class="password-toggle">
-                                <i class="fas fa-eye"></i>
-                            </button>
                         </div>
                     </div>
                     

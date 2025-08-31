@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест синхронизации данных - SellBit</title>
+    <meta name="theme-color" content="#0066CC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SellBit">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="SellBit">
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0066CC 0%, #004499 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-label {
+            font-weight: 500;
+        }
+        
+        .status-value {
+            font-weight: 600;
+        }
+        
+        .status-value.success {
+            color: #4CAF50;
+        }
+        
+        .status-value.error {
+            color: #F44336;
+        }
+        
+        .status-value.syncing {
+            color: #FFC107;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .btn.primary {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .sync-log {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .data-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .data-preview h4 {
+            color: #FFD700;
+            margin-bottom: 10px;
+        }
+        
+        .data-preview pre {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 11px;
+        }
+        
+        .sync-indicator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
+        }
+        
+        .sync-indicator.syncing {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+            animation: spin 1s linear infinite;
+        }
+        
+        .sync-indicator.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .sync-indicator.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Тест синхронизации данных</h1>
+        
+        <div class="status-card">
+            <h3>📊 Статус синхронизации</h3>
+            <div class="status-item">
+                <span class="status-label">Подключение к интернету:</span>
+                <span class="status-value" id="internetStatus">Проверка...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Подключение к серверу:</span>
+                <span class="status-value" id="serverStatus">Проверка...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Статус синхронизации:</span>
+                <span class="status-value" id="syncStatus">Ожидание...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Последняя синхронизация:</span>
+                <span class="status-value" id="lastSync">Неизвестно</span>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <h3>🧪 Тестирование</h3>
+            <div style="text-align: center;">
+                <button class="btn primary" onclick="testSync()">
+                    <span class="sync-indicator" id="testSyncIndicator">🔄</span>
+                    Тестировать синхронизацию
+                </button>
+                <button class="btn" onclick="forceSync()">
+                    <span class="sync-indicator" id="forceSyncIndicator">🔄</span>
+                    Принудительная синхронизация
+                </button>
+                <button class="btn" onclick="clearLog()">
+                    Очистить лог
+                </button>
+                <a href="home.html" class="btn">
+                    🏠 На главную
+                </a>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <h3>📋 Лог синхронизации</h3>
+            <div class="sync-log" id="syncLog">
+                <div>Лог синхронизации будет отображаться здесь...</div>
+            </div>
+        </div>
+        
+        <div class="status-card">
+            <h3>📊 Данные</h3>
+            <div class="data-preview">
+                <h4>💰 Баланс</h4>
+                <pre id="balanceData">Данные не загружены</pre>
+            </div>
+            <div class="data-preview">
+                <h4>📈 Цены криптовалют</h4>
+                <pre id="cryptoData">Данные не загружены</pre>
+            </div>
+            <div class="data-preview">
+                <h4>📋 История транзакций</h4>
+                <pre id="transactionData">Данные не загружены</pre>
+            </div>
+        </div>
+    </div>
+
+    <script src="server-connection.js"></script>
+    <script src="data-sync.js?v=3"></script>
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('syncLog');
+            const time = new Date().toLocaleTimeString();
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            
+            logDiv.innerHTML += `<div>[${time}] ${icon} ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function updateStatus(id, status, message) {
+            const element = document.getElementById(id);
+            element.textContent = message;
+            element.className = `status-value ${status}`;
+        }
+        
+        function updateSyncIndicator(id, status) {
+            const indicator = document.getElementById(id);
+            indicator.className = `sync-indicator ${status}`;
+            
+            if (status === 'syncing') {
+                indicator.textContent = '🔄';
+            } else if (status === 'success') {
+                indicator.textContent = '✅';
+            } else if (status === 'error') {
+                indicator.textContent = '❌';
+            } else {
+                indicator.textContent = '🔄';
+            }
+        }
+        
+        function updateDataPreview(id, data) {
+            const element = document.getElementById(id);
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+        
+        function updateLastSync() {
+            if (window.dataSync) {
+                const lastSync = window.dataSync.getLastSync();
+                if (lastSync) {
+                    updateStatus('lastSync', 'success', lastSync.toLocaleString());
+                } else {
+                    updateStatus('lastSync', 'error', 'Неизвестно');
+                }
+            }
+        }
+        
+        async function testSync() {
+            log('Начало тестирования синхронизации...', 'info');
+            updateSyncIndicator('testSyncIndicator', 'syncing');
+            
+            try {
+                // Проверяем подключение к интернету
+                if (navigator.onLine) {
+                    updateStatus('internetStatus', 'success', 'Подключено');
+                    log('Интернет подключен', 'success');
+                } else {
+                    updateStatus('internetStatus', 'error', 'Отключено');
+                    log('Интернет отключен', 'error');
+                    return;
+                }
+                
+                // Проверяем подключение к серверу
+                if (window.serverConnection && window.serverConnection.getStatus()) {
+                    updateStatus('serverStatus', 'success', 'Подключено');
+                    log('Сервер подключен', 'success');
+                } else {
+                    updateStatus('serverStatus', 'error', 'Отключено');
+                    log('Сервер отключен', 'error');
+                    return;
+                }
+                
+                // Тестируем синхронизацию
+                updateStatus('syncStatus', 'syncing', 'Синхронизация...');
+                log('Запуск синхронизации данных...', 'info');
+                
+                if (window.dataSync) {
+                    await window.dataSync.forceSync();
+                    updateStatus('syncStatus', 'success', 'Завершена');
+                    log('Синхронизация завершена успешно', 'success');
+                } else {
+                    updateStatus('syncStatus', 'error', 'Модуль не загружен');
+                    log('Модуль синхронизации не загружен', 'error');
+                }
+                
+                updateSyncIndicator('testSyncIndicator', 'success');
+                
+            } catch (error) {
+                log(`Ошибка тестирования: ${error.message}`, 'error');
+                updateStatus('syncStatus', 'error', 'Ошибка');
+                updateSyncIndicator('testSyncIndicator', 'error');
+            }
+            
+            updateLastSync();
+        }
+        
+        async function forceSync() {
+            log('Принудительная синхронизация...', 'info');
+            updateSyncIndicator('forceSyncIndicator', 'syncing');
+            
+            try {
+                if (window.dataSync) {
+                    await window.dataSync.forceSync();
+                    log('Принудительная синхронизация завершена', 'success');
+                    updateSyncIndicator('forceSyncIndicator', 'success');
+                } else {
+                    log('Модуль синхронизации не загружен', 'error');
+                    updateSyncIndicator('forceSyncIndicator', 'error');
+                }
+            } catch (error) {
+                log(`Ошибка принудительной синхронизации: ${error.message}`, 'error');
+                updateSyncIndicator('forceSyncIndicator', 'error');
+            }
+            
+            updateLastSync();
+        }
+        
+        function clearLog() {
+            document.getElementById('syncLog').innerHTML = '<div>Лог очищен</div>';
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', () => {
+            log('Страница загружена', 'info');
+            
+            // Обновляем статусы
+            updateStatus('internetStatus', navigator.onLine ? 'success' : 'error', 
+                        navigator.onLine ? 'Подключено' : 'Отключено');
+            
+            if (window.serverConnection) {
+                updateStatus('serverStatus', window.serverConnection.getStatus() ? 'success' : 'error',
+                           window.serverConnection.getStatus() ? 'Подключено' : 'Отключено');
+            }
+            
+            if (window.dataSync) {
+                updateStatus('syncStatus', window.dataSync.isSyncInProgress() ? 'syncing' : 'success',
+                           window.dataSync.isSyncInProgress() ? 'Синхронизация...' : 'Готово');
+            }
+            
+            updateLastSync();
+            
+            // Слушаем события
+            window.addEventListener('online', () => {
+                updateStatus('internetStatus', 'success', 'Подключено');
+                log('Интернет восстановлен', 'success');
+            });
+            
+            window.addEventListener('offline', () => {
+                updateStatus('internetStatus', 'error', 'Отключено');
+                log('Интернет потерян', 'warning');
+            });
+            
+            // Слушаем события синхронизации
+            if (window.dataSync) {
+                const originalShowSyncNotification = window.dataSync.showSyncNotification;
+                window.dataSync.showSyncNotification = function(message, type) {
+                    originalShowSyncNotification.call(this, message, type);
+                    log(`Синхронизация: ${message}`, type);
+                };
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>SellBit - Криптобиржа</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SellBit">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="SellBit">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="logos.js"></script>
+    <script src="api-utils.js"></script>
+    <script src="pwa-register.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="app-title">SellBit</h1>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" onclick="window.location.href='notification-demo.html'" title="Демо уведомлений">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <div class="user-avatar" id="userAvatar">U</div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Balance Section -->
+            <section class="balance-section">
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <span class="balance-label">Общий баланс</span>
+                        <button class="icon-btn eye-btn">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="balance-amount" id="totalBalance">$0.00</div>
+                    <div class="balance-change" id="balanceChange">
+                        <i class="fas fa-minus"></i>
+                        $0.00 (0.00%)
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="action-btn primary" onclick="openDepositModal()">
+                        <i class="fas fa-plus"></i>
+                        Пополнить
+                    </button>
+                    <button class="action-btn secondary" onclick="openWithdrawModal()">
+                        <i class="fas fa-arrow-up"></i>
+                        Вывести
+                    </button>
+                    <button class="action-btn secondary" onclick="openSupportModal()">
+                        <i class="fas fa-headset"></i>
+                        Поддержка
+                    </button>
+                </div>
+            </section>
+
+            <!-- Quick Stats -->
+            <section class="stats-section">
+                <div class="main-stats-center">
+                    <div class="stat-block">
+                        <div class="stat-value" id="monthlyChange">0.00%</div>
+                        <div class="stat-label">За месяц</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-value" id="assetsCount">0</div>
+                        <div class="stat-label">Активов</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-value" id="activeStakes">0</div>
+                        <div class="stat-label">Активных ставок</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Top Assets -->
+            <section class="assets-section">
+                <div class="section-header">
+                    <h2>Топ активов</h2>
+                    <button class="text-btn" onclick="window.location.href='coins.html'">Все активы</button>
+                </div>
+                <div class="assets-list" id="topAssets">
+                    <!-- Assets will be loaded dynamically -->
+                </div>
+            </section>
+
+            <!-- Recent Transactions -->
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2>История операций</h2>
+                    <button class="text-btn" onclick="scrollToTransactions()">Обновить</button>
+                </div>
+                <div class="transactions-list" id="recentTransactions">
+                    <!-- Transactions will be loaded dynamically -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='coins.html'">
+                <i class="fas fa-coins"></i>
+                <span>Монеты</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='news.html'">
+                <i class="fas fa-newspaper"></i>
+                <span>Новости</span>
+            </button>
+            
+            <button class="nav-btn" onclick="window.location.href='setting.html'">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Deposit Modal -->
+    <div class="modal" id="depositModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Пополнить баланс</h3>
+                <button class="icon-btn" onclick="closeModal('depositModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="depositForm">
+                    <div class="form-group">
+                        <label>Сумма (USD)</label>
+                        <input type="number" id="depositAmount" placeholder="0.00" min="1" step="0.01" required>
+                    </div>
+                    <button type="submit" class="trade-btn primary">Пополнить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div class="modal" id="withdrawModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Вывести средства</h3>
+                <button class="icon-btn" onclick="closeModal('withdrawModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="withdrawForm">
+                    <div class="form-group">
+                        <label>Сумма (USD)</label>
+                        <input type="number" id="withdrawAmount" placeholder="0.00" min="1" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Максимум доступно: <span id="maxWithdraw">$0.00</span></label>
+                    </div>
+                    <button type="submit" class="trade-btn primary">Вывести</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div class="modal" id="supportModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Техническая поддержка</h3>
+                <button class="icon-btn" onclick="closeModal('supportModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="support-options">
+                    <div class="support-option" onclick="contactSupport('email')">
+                        <div class="support-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="support-info">
+                            <div class="support-title">Email поддержка</div>
+                            <div class="support-description">support@sellbit.com</div>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                    
+                    <div class="support-option" onclick="contactSupport('telegram')">
+                        <div class="support-icon">
+                            <i class="fab fa-telegram"></i>
+                        </div>
+                        <div class="support-info">
+                            <div class="support-title">Telegram</div>
+                            <div class="support-description">@SaleBitAdmin</div>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                    
+                    <div class="support-option" onclick="contactSupport('chat')">
+                        <div class="support-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="support-info">
+                            <div class="support-title">Онлайн чат</div>
+                            <div class="support-description">Доступен 24/7</div>
+                        </div>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </div>
+                
+                <div class="support-info-card">
+                    <h4>Часы работы поддержки:</h4>
+                    <p>Понедельник - Пятница: 9:00 - 18:00 (МСК)</p>
+                    <p>Суббота - Воскресенье: 10:00 - 16:00 (МСК)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="logout.js"></script>
+    <script src="balance-sync.js"></script>
+    <script src="server-connection.js"></script>
+    <script src="notification-manager.js"></script>
+    <script src="data-sync.js?v=3"></script>
+    <script src="home.js"></script>
+</body>
+
+</html>

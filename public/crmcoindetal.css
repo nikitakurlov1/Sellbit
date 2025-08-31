@@ -40,7 +40,7 @@ body {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.5rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #dd6b20;
 }
@@ -102,13 +102,16 @@ body {
 .coin-logo {
     border-radius: 50%;
     object-fit: cover;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Убрали анимации */
 }
 
-.coin-logo:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+/* Стили для SVG логотипов в деталях монет */
+.coin-logo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
 }
 
 .coin-icon {
@@ -642,11 +645,11 @@ body {
     }
     
     .coin-details h1 {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     
     .price-value {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
     
     .form-row {

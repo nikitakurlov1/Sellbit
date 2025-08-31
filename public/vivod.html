@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Вывод средств - SellBit</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <link rel="stylesheet" href="vivod.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn back-btn" onclick="goBack()">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="page-title">Вывод средств</h1>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Balance Info -->
+            <section class="balance-section">
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <span class="balance-label">Доступный баланс</span>
+                    </div>
+                    <div class="balance-amount" id="availableBalance">
+                        $0.00
+                    </div>
+                </div>
+            </section>
+
+            <!-- Amount Section -->
+            <section class="amount-section">
+                <div class="amount-card">
+                    <div class="amount-header">
+                        <span class="amount-label">Сумма вывода</span>
+                    </div>
+                    <div class="amount-input-container">
+                        <input type="number" id="withdrawAmount" class="amount-input" placeholder="0.00" min="1" step="0.01">
+                    </div>
+                    <div class="currency-selector">
+                        <button class="currency-btn active" data-currency="USD" onclick="selectCurrency('USD')">
+                            <span class="currency-symbol">$</span>
+                            <span class="currency-code">USD</span>
+                        </button>
+                        <button class="currency-btn" data-currency="EUR" onclick="selectCurrency('EUR')">
+                            <span class="currency-symbol">€</span>
+                            <span class="currency-code">EUR</span>
+                        </button>
+                        <button class="currency-btn" data-currency="RUB" onclick="selectCurrency('RUB')">
+                            <span class="currency-symbol">₽</span>
+                            <span class="currency-code">RUB</span>
+                        </button>
+                    </div>
+                    <div class="amount-actions">
+                        <button class="amount-action-btn" onclick="setMaxAmount()">Максимум</button>
+                        <button class="amount-action-btn" onclick="setHalfAmount()">50%</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Withdrawal Method Section -->
+            <section class="method-section">
+                <div class="section-header">
+                    <h2>Способ вывода</h2>
+                </div>
+                <div class="withdrawal-methods">
+                    <div class="withdrawal-method" data-method="card">
+                        <div class="method-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="method-info">
+                            <div class="method-name">Банковская карта</div>
+                            <div class="method-description">Visa, MasterCard, МИР</div>
+                        </div>
+                        <div class="method-radio">
+                            <input type="radio" name="withdrawalMethod" value="card" checked>
+                        </div>
+                    </div>
+                    
+                    <div class="withdrawal-method" data-method="crypto">
+                        <div class="method-icon">
+                            <i class="fab fa-bitcoin"></i>
+                        </div>
+                        <div class="method-info">
+                            <div class="method-name">Криптовалюта</div>
+                            <div class="method-description">BTC, ETH, USDT</div>
+                        </div>
+                        <div class="method-radio">
+                            <input type="radio" name="withdrawalMethod" value="crypto">
+                        </div>
+                    </div>
+                    
+                    <div class="withdrawal-method" data-method="transfer">
+                        <div class="method-icon">
+                            <i class="fas fa-university"></i>
+                        </div>
+                        <div class="method-info">
+                            <div class="method-name">Банковский перевод</div>
+                            <div class="method-description">СБП, SWIFT</div>
+                        </div>
+                        <div class="method-radio">
+                            <input type="radio" name="withdrawalMethod" value="transfer">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recipient Details Section -->
+            <section class="details-section" id="recipientDetails">
+                <div class="section-header">
+                    <h2>Реквизиты получателя</h2>
+                </div>
+                
+                <!-- Card Withdrawal Details -->
+                <div class="recipient-details" id="cardDetails">
+                    <div class="form-group">
+                        <label for="cardNumber">Номер карты</label>
+                        <input type="text" id="cardNumber" class="form-input" placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardHolder">Владелец карты</label>
+                        <input type="text" id="cardHolder" class="form-input" placeholder="IVAN IVANOV">
+                    </div>
+                </div>
+
+                <!-- Crypto Withdrawal Details -->
+                <div class="recipient-details" id="cryptoDetails" style="display: none;">
+                    <div class="form-group">
+                        <label for="cryptoType">Тип криптовалюты</label>
+                        <select id="cryptoType" class="form-input">
+                            <option value="BTC">Bitcoin (BTC)</option>
+                            <option value="ETH">Ethereum (ETH)</option>
+                            <option value="USDT">Tether (USDT)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="cryptoAddress">Адрес кошелька</label>
+                        <input type="text" id="cryptoAddress" class="form-input" placeholder="Введите адрес кошелька">
+                    </div>
+                    <div class="form-group">
+                        <label for="cryptoNetwork">Сеть</label>
+                        <select id="cryptoNetwork" class="form-input">
+                            <option value="mainnet">Mainnet</option>
+                            <option value="bsc">BSC</option>
+                            <option value="polygon">Polygon</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Transfer Withdrawal Details -->
+                <div class="recipient-details" id="transferDetails" style="display: none;">
+                    <div class="form-group">
+                        <label for="bankName">Название банка</label>
+                        <input type="text" id="bankName" class="form-input" placeholder="ПАО Сбербанк">
+                    </div>
+                    <div class="form-group">
+                        <label for="accountNumber">Номер счета</label>
+                        <input type="text" id="accountNumber" class="form-input" placeholder="40702810123456789012">
+                    </div>
+                    <div class="form-group">
+                        <label for="recipientName">Получатель</label>
+                        <input type="text" id="recipientName" class="form-input" placeholder="Иванов Иван Иванович">
+                    </div>
+                    <div class="form-group">
+                        <label for="bik">БИК</label>
+                        <input type="text" id="bik" class="form-input" placeholder="044525225">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Fee Info Section -->
+            <section class="fee-section">
+                <div class="fee-card">
+                    <div class="fee-item">
+                        <span class="fee-label">Комиссия</span>
+                        <span class="fee-value" id="feeAmount">$0.00</span>
+                    </div>
+                    <div class="fee-item">
+                        <span class="fee-label">К получению</span>
+                        <span class="fee-value" id="amountToReceive">$0.00</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Submit Button -->
+            <section class="submit-section">
+                <button class="submit-btn" onclick="submitWithdrawal()">
+                    <i class="fas fa-paper-plane"></i>
+                    Отправить заявку
+                </button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+                        <button class="nav-btn" onclick="window.location.href='home.html'">
+            <i class="fas fa-home"></i>
+            <span>Главная</span>
+        </button>
+                    <button class="nav-btn" onclick="window.location.href='coins.html'">
+            <i class="fas fa-coins"></i>
+            <span>Монеты</span>
+        </button>
+        <button class="nav-btn" onclick="window.location.href='news.html'">
+            <i class="fas fa-newspaper"></i>
+            <span>Новости</span>
+        </button>
+
+        <button class="nav-btn" onclick="window.location.href='setting.html'">
+            <i class="fas fa-cog"></i>
+            <span>Настройки</span>
+        </button>
+    </nav>
+
+    <script src="vivod.js"></script>
+</body>
+
+</html>

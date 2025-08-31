@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+    <title>Настройки</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" href="favicon.svg">
+    <meta name="theme-color" content="#0066CC">
+    <meta name="msapplication-TileColor" content="#0066CC">
+    <link rel="stylesheet" href="setting.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- PWA Status Bar -->
+    <div class="pwa-status-bar"></div>
+    
+    
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="icon-btn back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <h1 class="page-title">Настройки</h1>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+
+
+
+            <!-- Account -->
+            <section class="settings-section">
+                <h2 class="section-title">Аккаунт</h2>
+                <div class="settings-list">
+                    <div class="setting-item" onclick="openChangePasswordModal()">
+                        <div class="setting-left">
+                            <i class="fas fa-lock setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Сменить пароль</h4>
+                                <p class="setting-description">Обновить пароль аккаунта</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right setting-arrow"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Preferences -->
+            <section class="settings-section">
+                <h2 class="section-title">Предпочтения</h2>
+                <div class="settings-list">
+                    <div class="setting-item">
+                        <div class="setting-left">
+                            <i class="fas fa-eye setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Скрыть баланс</h4>
+                                <p class="setting-description">Скрыть суммы в приложении</p>
+                            </div>
+                        </div>
+                        <div class="setting-right">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="hideBalanceToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-left">
+                            <i class="fas fa-bell setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Уведомления</h4>
+                                <p class="setting-description">Получать уведомления о транзакциях</p>
+                            </div>
+                        </div>
+                        <div class="setting-right">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="notificationsToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-left">
+                            <i class="fas fa-chart-line setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Автообновление</h4>
+                                <p class="setting-description">Автоматически обновлять данные</p>
+                            </div>
+                        </div>
+                        <div class="setting-right">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoUpdateToggle" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Management -->
+            <section class="settings-section">
+                <h2 class="section-title">Управление данными</h2>
+                <div class="settings-list">
+                    <div class="setting-item" onclick="clearHistory()">
+                        <div class="setting-left">
+                            <i class="fas fa-trash setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Очистить историю</h4>
+                                <p class="setting-description">Удалить все транзакции</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right setting-arrow"></i>
+                    </div>
+                    <div class="setting-item" onclick="exportData()">
+                        <div class="setting-left">
+                            <i class="fas fa-download setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Экспорт данных</h4>
+                                <p class="setting-description">Скачать историю транзакций</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right setting-arrow"></i>
+                    </div>
+                    <div class="setting-item" onclick="resetApp()">
+                        <div class="setting-left">
+                            <i class="fas fa-redo setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Сбросить приложение</h4>
+                                <p class="setting-description">Очистить все данные и настройки</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right setting-arrow"></i>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- Support & About -->
+            <section class="settings-section">
+                <h2 class="section-title">Поддержка</h2>
+                <div class="settings-list">
+                    <div class="setting-item" onclick="window.location.href='support.html'">
+                        <div class="setting-left">
+                            <i class="fas fa-headset setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">Связаться с поддержкой</h4>
+                                <p class="setting-description">Чат и обратная связь</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right setting-arrow"></i>
+                    </div>
+                    <div class="setting-item">
+                        <div class="setting-left">
+                            <i class="fas fa-info-circle setting-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title">О приложении</h4>
+                                <p class="setting-description">Версия 1.0.0</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right setting-arrow"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logout -->
+            <section class="settings-section">
+                <div class="settings-list">
+                    <div class="setting-item logout-item">
+                        <div class="setting-left">
+                            <i class="fas fa-sign-out-alt setting-icon logout-icon"></i>
+                            <div class="setting-content">
+                                <h4 class="setting-title logout-title">Выйти</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+                            <button class="nav-btn" onclick="window.location.href='home.html'">
+                <i class="fas fa-home"></i>
+                <span>Главная</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='coins.html'">
+                <i class="fas fa-coins"></i>
+                <span>Монеты</span>
+            </button>
+            <button class="nav-btn" onclick="window.location.href='news.html'">
+                <i class="fas fa-newspaper"></i>
+                <span>Новости</span>
+            </button>
+
+            <button class="nav-btn active">
+                <i class="fas fa-cog"></i>
+                <span>Настройки</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal" id="changePasswordModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Сменить пароль</h3>
+                <button class="icon-btn" onclick="closeModal('changePasswordModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="form-group">
+                        <label>Текущий пароль</label>
+                        <input type="password" id="currentPassword" placeholder="Введите текущий пароль" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Новый пароль</label>
+                        <input type="password" id="newPassword" placeholder="Введите новый пароль" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Подтвердите новый пароль</label>
+                        <input type="password" id="confirmPassword" placeholder="Повторите новый пароль" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Сменить пароль</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="logout.js"></script>
+    <script src="setting.js"></script>
+</body>
+</html>
