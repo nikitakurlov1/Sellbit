@@ -574,51 +574,7 @@ body {
     outline-offset: 2px;
 }
 
-/* Bottom Navigation */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100%;
-    max-width: 414px;
-    background: #ffffff;
-    border-top: 1px solid #E5E5E7;
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 0;
-    z-index: 1000;
-}
 
-.nav-btn {
-    background: transparent;
-    border: none;
-    color: #8E8E93;
-    padding: 8px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    flex: 1;
-    max-width: 70px;
-}
-
-.nav-btn:hover {
-    background: #F2F2F7;
-}
-
-.nav-btn.active {
-    color: #4A88FF;
-}
-
-.nav-btn i {
-    font-size: 18px;
-}
 
 /* Selection */
 ::selection {

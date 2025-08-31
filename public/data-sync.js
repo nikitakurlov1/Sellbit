@@ -311,7 +311,7 @@ class DataSync {
         container.innerHTML = assets.map(asset => `
             <div class="asset-item">
                 <div class="asset-icon">
-                    <img src="/logos/${asset.symbol.toLowerCase()}.svg" alt="${asset.name}">
+                    <img src="${window.CryptoLogos ? window.CryptoLogos.getCoinLogoBySymbol(asset.symbol) : '/logos/default.svg'}" alt="${asset.name}" onerror="this.src='/logos/default.svg'">
                 </div>
                 <div class="asset-info">
                     <div class="asset-name">${asset.name}</div>

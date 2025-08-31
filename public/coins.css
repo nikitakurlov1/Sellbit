@@ -170,68 +170,54 @@ body {
 }
 
 .coins-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+    display: flex;
+    gap: 12px;
     margin-bottom: 32px;
     padding: 0 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.coins-grid::-webkit-scrollbar {
+    display: none;
 }
 
 .coin-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    background: #ffffff;
     border: 1px solid #E5E5E7;
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 12px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    min-width: 140px;
+    flex-shrink: 0;
     position: relative;
     overflow: hidden;
 }
 
-.coin-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #4A88FF, #00C853);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
 .coin-card:hover {
-    border-color: #4A88FF;
-    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(74, 136, 255, 0.15);
-}
-
-.coin-card:hover::before {
-    opacity: 1;
+    background: #f8f9fa;
 }
 
 .coin-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
 .coin-icon {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 10px;
     color: #ffffff;
     flex-shrink: 0;
     overflow: hidden;
     border: none;
-    /* Убрали анимации */
 }
 
 /* Стили для SVG логотипов */
@@ -248,45 +234,42 @@ body {
 }
 
 .coin-name {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 500;
     color: #000000;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .coin-symbol {
-    font-size: 12px;
+    font-size: 10px;
     color: #8E8E93;
 }
 
 .coin-price {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 600;
     color: #000000;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 .coin-change {
-    font-size: 14px;
-    font-weight: 600;
-    padding: 4px 12px;
-    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 8px;
     display: inline-block;
-    min-width: 80px;
+    min-width: 60px;
     text-align: center;
-    transition: all 0.3s ease;
 }
 
 .coin-change.positive {
-    background: linear-gradient(135deg, rgba(0, 200, 83, 0.1) 0%, rgba(0, 200, 83, 0.2) 100%);
+    background: rgba(0, 200, 83, 0.1);
     color: #00C853;
-    border: 1px solid rgba(0, 200, 83, 0.3);
 }
 
 .coin-change.negative {
-    background: linear-gradient(135deg, rgba(255, 69, 58, 0.1) 0%, rgba(255, 69, 58, 0.2) 100%);
+    background: rgba(255, 69, 58, 0.1);
     color: #FF453A;
-    border: 1px solid rgba(255, 69, 58, 0.3);
 }
 
 /* Убрали hover анимации */
@@ -545,12 +528,13 @@ body {
     }
 
     .coins-grid {
-        grid-template-columns: 1fr;
         gap: 8px;
+        padding: 0 8px;
     }
 
     .coin-card {
-        padding: 12px;
+        padding: 8px;
+        min-width: 120px;
     }
 
     .sort-controls {

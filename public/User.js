@@ -164,7 +164,7 @@ function showEditUserModal(user) {
     document.getElementById('editUserId').value = user.id;
     document.getElementById('editUserUsername').value = user.username;
     document.getElementById('editUserEmail').value = user.email;
-    document.getElementById('editUserStatus').value = user.status || 'pending';
+    document.getElementById('editUserStatus').value = user.status || 'new-lead';
     document.getElementById('editUserBalance').value = user.balance?.USD || 0;
     document.getElementById('editUserNotes').value = user.notes || '';
     
@@ -433,14 +433,15 @@ function renderUsers() {
 
 function updateStats() {
     const totalUsers = users.length;
-    const activeUsers = users.filter(user => user.status === 'active').length;
-    const pendingUsers = users.filter(user => user.status === 'pending').length;
-    const rejectedUsers = users.filter(user => user.status === 'rejected').length;
+    const newLeadUsers = users.filter(user => user.status === 'new-lead').length;
+    const clouserUsers = users.filter(user => user.status === 'clouser').length;
+    const depUsers = users.filter(user => user.status === 'dep').length;
+    const fullOtkazUsers = users.filter(user => user.status === 'full-otkaz').length;
 
     if (totalUsersElement) totalUsersElement.textContent = totalUsers;
-    if (activeUsersElement) activeUsersElement.textContent = activeUsers;
-    if (pendingUsersElement) pendingUsersElement.textContent = pendingUsers;
-    if (rejectedUsersElement) rejectedUsersElement.textContent = rejectedUsers;
+    if (activeUsersElement) activeUsersElement.textContent = newLeadUsers;
+    if (pendingUsersElement) pendingUsersElement.textContent = clouserUsers;
+    if (rejectedUsersElement) rejectedUsersElement.textContent = depUsers;
 }
 
 function updatePagination() {
@@ -506,10 +507,15 @@ function formatDate(dateString) {
 
 function getStatusText(status) {
     const statusMap = {
-        'active': 'Активный',
-        'pending': 'Ожидающий',
-        'rejected': 'Отклоненный',
-        'processing': 'В проработке'
+        'new-lead': 'New Lead',
+        'clouser': 'Clouser',
+        'otkaz-cl': 'Otkaz Cl',
+        'dep': 'Dep',
+        'kach-dodep': 'Kach dodep',
+        'dodep': 'Dodep',
+        'cach-nalog': 'Cach nalog',
+        'nalog': 'Nalog',
+        'full-otkaz': 'Full Otkaz'
     };
     return statusMap[status] || status;
 }

@@ -80,7 +80,8 @@ class NotificationManager {
             type,
             closable,
             actions,
-            progress
+            progress,
+            duration
         });
 
         // Добавляем в контейнер
@@ -102,7 +103,7 @@ class NotificationManager {
     /**
      * Создание элемента уведомления
      */
-    createNotification({ id, title, message, type, closable, actions, progress }) {
+    createNotification({ id, title, message, type, closable, actions, progress, duration = 0 }) {
         const notification = document.createElement('div');
         notification.className = `notification ${type}`;
         notification.dataset.id = id;

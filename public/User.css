@@ -337,28 +337,58 @@ body {
     text-align: center;
 }
 
-.status-badge.active {
+.status-badge.new-lead {
+    background: #e6fffa;
+    color: #234e52;
+    border: 1px solid #4fd1c7;
+}
+
+.status-badge.clouser {
     background: #f0fff4;
     color: #22543d;
     border: 1px solid #68d391;
 }
 
-.status-badge.pending {
-    background: #fffbeb;
-    color: #744210;
-    border: 1px solid #f6ad55;
-}
-
-.status-badge.rejected {
+.status-badge.otkaz-cl {
     background: #fed7d7;
     color: #742a2a;
     border: 1px solid #fc8181;
 }
 
-.status-badge.processing {
+.status-badge.dep {
     background: #ebf8ff;
     color: #2a4365;
     border: 1px solid #63b3ed;
+}
+
+.status-badge.kach-dodep {
+    background: #fef5e7;
+    color: #744210;
+    border: 1px solid #f6ad55;
+}
+
+.status-badge.dodep {
+    background: #e9d8fd;
+    color: #553c9a;
+    border: 1px solid #b794f6;
+}
+
+.status-badge.cach-nalog {
+    background: #fed7e2;
+    color: #702459;
+    border: 1px solid #f687b3;
+}
+
+.status-badge.nalog {
+    background: #f7fafc;
+    color: #2d3748;
+    border: 1px solid #a0aec0;
+}
+
+.status-badge.full-otkaz {
+    background: #2d3748;
+    color: #ffffff;
+    border: 1px solid #1a202c;
 }
 
 /* Action Buttons */

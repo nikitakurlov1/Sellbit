@@ -13,9 +13,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="logos.js"></script>
-    <script src="api-utils.js"></script>
-    <script src="pwa.js"></script>
+    <script src="logos.js?v=2"></script>
+    <script src="api-utils.js?v=2"></script>
+    <script src="pwa-register.js?v=2"></script>
 </head>
 <body>
     <!-- PWA Status Bar -->
@@ -103,8 +103,8 @@
                         <div class="staking-btn-content">
                             <i class="fas fa-chart-line"></i>
                             <div class="staking-btn-text">
-                                <span class="staking-title">Стейкинг</span>
-                                <span class="staking-subtitle">Ставка на рост/падение</span>
+                                <span class="staking-title">Торговля</span>
+                                <span class="staking-subtitle">Сделка на рост/падение</span>
                             </div>
                         </div>
                         <div class="staking-btn-arrow">
@@ -115,7 +115,7 @@
                 <div class="active-stakes-link">
                     <button class="active-stakes-btn" onclick="openActiveStakesModal()">
                         <i class="fas fa-clock"></i>
-                        <span>Активные ставки</span>
+                        <span>Активные сделки</span>
                         <span class="stakes-count" id="stakesCount">0</span>
                     </button>
                 </div>
@@ -179,7 +179,7 @@
     <div class="modal" id="stakeModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="stakeModalTitle">Стейкинг - Ставка на рост</h3>
+                <h3 id="stakeModalTitle">Торговля - Сделка на рост</h3>
                 <button class="icon-btn" onclick="closeModal('stakeModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -203,48 +203,39 @@
                     <div class="direction-buttons">
                         <button type="button" class="direction-btn active" data-direction="up" onclick="selectDirection('up')">
                             <i class="fas fa-arrow-up"></i>
-                            <span>Рост</span>
+                            <span>Long</span>
                         </button>
                         <button type="button" class="direction-btn" data-direction="down" onclick="selectDirection('down')">
                             <i class="fas fa-arrow-down"></i>
-                            <span>Падение</span>
+                            <span>Short</span>
                         </button>
                     </div>
                 </div>
 
                 <form id="stakeForm">
                     <div class="amount-input-container">
-                        <label class="amount-label">Сумма ставки (USD)</label>
+                        <label class="amount-label">Сумма сделки (USD)</label>
                         <input type="number" id="stakeAmount" class="amount-input" placeholder="10.00" min="10" step="0.01" required>
                     </div>
                     
                     <div class="form-group">
-                        <label>Время ставки</label>
+                        <label>Время сделки</label>
                         <div class="time-selector">
-                            <button type="button" class="time-option active" data-value="0.083" data-time="5 минут">
-                                <span class="time-value">5</span>
-                                <span class="time-unit">мин</span>
-                            </button>
-                            <button type="button" class="time-option" data-value="1" data-time="1 час">
-                                <span class="time-value">1</span>
-                                <span class="time-unit">час</span>
-                            </button>
-                            <button type="button" class="time-option" data-value="3" data-time="3 часа">
-                                <span class="time-value">3</span>
-                                <span class="time-unit">часа</span>
-                            </button>
-                            <button type="button" class="time-option" data-value="6" data-time="6 часов">
-                                <span class="time-value">6</span>
-                                <span class="time-unit">часов</span>
-                            </button>
-                            <button type="button" class="time-option" data-value="12" data-time="12 часов">
-                                <span class="time-value">12</span>
-                                <span class="time-unit">часов</span>
-                            </button>
-                            <button type="button" class="time-option" data-value="24" data-time="24 часа">
-                                <span class="time-value">24</span>
-                                <span class="time-unit">часа</span>
-                            </button>
+                            <div class="time-slider-container">
+                                <input type="range" id="timeSlider" class="time-slider" min="0" max="5" value="0" step="1">
+                                <div class="time-labels">
+                                    <div class="time-label" data-value="0">5 мин</div>
+                                    <div class="time-label" data-value="1">1 час</div>
+                                    <div class="time-label" data-value="2">3 часа</div>
+                                    <div class="time-label" data-value="3">6 часов</div>
+                                    <div class="time-label" data-value="4">12 часов</div>
+                                    <div class="time-label" data-value="5">24 часа</div>
+                                </div>
+                            </div>
+                            <div class="current-time-display">
+                                <div class="current-time-value" id="currentTimeValue">5</div>
+                                <div class="current-time-unit" id="currentTimeUnit">минут</div>
+                            </div>
                         </div>
                         <input type="hidden" id="stakeTime" value="0.083">
                     </div>
@@ -263,7 +254,7 @@
 
 
 
-                    <button type="submit" class="trade-btn primary" id="stakeSubmitBtn">Создать ставку на рост</button>
+                    <button type="submit" class="trade-btn primary" id="stakeSubmitBtn">Создать сделку на рост</button>
                 </form>
             </div>
         </div>
@@ -273,7 +264,7 @@
     <div class="modal" id="activeStakesModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Активные ставки</h3>
+                <h3>Активные сделки</h3>
                 <button class="icon-btn" onclick="closeModal('activeStakesModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -289,8 +280,8 @@
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="balance-sync.js"></script>
-    <script src="notification-manager.js"></script>
-    <script src="coininfo.js"></script>
+    <script src="balance-sync.js?v=2"></script>
+    <script src="notification-manager.js?v=2"></script>
+    <script src="coininfo.js?v=2"></script>
 </body>
 </html>

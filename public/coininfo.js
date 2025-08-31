@@ -33,15 +33,18 @@ class CoinInfoPage {
             this.updateBalanceDisplay();
         }, 5000);
         
-        // Проверяем результаты ставок каждые 30 секунд
+        // Проверяем результаты сделок каждые 30 секунд
         setInterval(() => {
             this.checkStakeResults();
         }, 30000);
         
-        // Обновляем отображение активных ставок каждую минуту
+        // Обновляем отображение активных сделок каждую минуту
         setInterval(() => {
             this.updateActiveStakesDisplay();
         }, 60000);
+        
+        // Инициализируем ползунок времени
+        this.initializeTimeSlider();
     }
 
     bindEvents() {
@@ -78,19 +81,11 @@ class CoinInfoPage {
             });
         }
 
-        // Time option buttons
-        const timeOptions = document.querySelectorAll('.time-option');
-        timeOptions.forEach(option => {
-            option.addEventListener('click', (e) => {
-                this.selectTimeOption(e.target.closest('.time-option'));
-            });
-        });
-
-        // Stake time selector (hidden input)
-        const stakeTime = document.getElementById('stakeTime');
-        if (stakeTime) {
-            stakeTime.addEventListener('change', () => {
-                this.calculateStakePotential();
+        // Time slider
+        const timeSlider = document.getElementById('timeSlider');
+        if (timeSlider) {
+            timeSlider.addEventListener('input', (e) => {
+                this.updateTimeSlider(e.target.value);
             });
         }
 
@@ -176,7 +171,7 @@ class CoinInfoPage {
         const direction = this.stakeDirection;
         
         if (amount < 10) {
-            this.showToast('Минимальная сумма ставки: $10', 'error');
+            this.showToast('Минимальная сумма сделки: $10', 'error');
             return;
         }
 
@@ -187,9 +182,9 @@ class CoinInfoPage {
             return;
         }
 
-        this.showToast('Создание ставки...', 'info');
+        this.showToast('Создание сделки...', 'info');
         
-        // Создаем ставку
+        // Создаем сделку
         const stake = {
             id: Date.now() + Math.random(),
             coinId: this.currentCoin.id,
@@ -206,7 +201,7 @@ class CoinInfoPage {
             dynamicMultiplier: true // Флаг для динамического расчета
         };
         
-        // Добавляем ставку в список активных
+        // Добавляем сделку в список активных
         this.activeStakes.push(stake);
         localStorage.setItem('activeStakes', JSON.stringify(this.activeStakes));
         
@@ -219,35 +214,63 @@ class CoinInfoPage {
             window.BalanceSync.updateServerBalance(user.balance);
         }
         
-        this.showToast(`Ставка на ${direction === 'up' ? 'рост' : 'падение'} создана!`, 'success');
+        this.showToast(`Сделка на ${direction === 'up' ? 'рост' : 'падение'} создана!`, 'success');
         this.closeModal('stakeModal');
         document.getElementById('stakeAmount').value = '';
         this.calculateStakePotential();
         
-        // Обновляем отображение активных ставок
+        // Обновляем отображение активных сделок
         this.updateActiveStakesDisplay();
         this.updateStakesCount();
     }
 
-    // Выбор времени ставки
-    selectTimeOption(selectedOption) {
-        // Убираем активный класс со всех опций
-        const timeOptions = document.querySelectorAll('.time-option');
-        timeOptions.forEach(option => {
-            option.classList.remove('active');
-        });
+    // Обновление ползунка времени
+    updateTimeSlider(value) {
+        const timeValues = [0.083, 1, 3, 6, 12, 24]; // в часах
+        const timeLabels = [
+            { value: 5, unit: 'минут' },
+            { value: 1, unit: 'час' },
+            { value: 3, unit: 'часа' },
+            { value: 6, unit: 'часов' },
+            { value: 12, unit: 'часов' },
+            { value: 24, unit: 'часа' }
+        ];
         
-        // Добавляем активный класс к выбранной опции
-        selectedOption.classList.add('active');
+        const index = parseInt(value);
+        const timeValue = timeValues[index];
+        const timeLabel = timeLabels[index];
+        
+        // Обновляем отображение времени
+        const currentTimeValue = document.getElementById('currentTimeValue');
+        const currentTimeUnit = document.getElementById('currentTimeUnit');
+        if (currentTimeValue && currentTimeUnit) {
+            currentTimeValue.textContent = timeLabel.value;
+            currentTimeUnit.textContent = timeLabel.unit;
+        }
+        
+        // Обновляем активные метки
+        const timeLabelsElements = document.querySelectorAll('.time-label');
+        timeLabelsElements.forEach((label, i) => {
+            label.classList.toggle('active', i === index);
+        });
         
         // Обновляем значение скрытого input
         const stakeTimeInput = document.getElementById('stakeTime');
         if (stakeTimeInput) {
-            stakeTimeInput.value = selectedOption.dataset.value;
+            stakeTimeInput.value = timeValue;
         }
         
         // Пересчитываем потенциальный выигрыш
         this.calculateStakePotential();
+    }
+
+    // Инициализация ползунка времени
+    initializeTimeSlider() {
+        const timeSlider = document.getElementById('timeSlider');
+        if (timeSlider) {
+            // Устанавливаем начальное значение
+            this.updateTimeSlider(0);
+        }
     }
 
     // Выбор направления ставки
@@ -266,13 +289,13 @@ class CoinInfoPage {
         // Обновляем заголовок модального окна
         const modalTitle = document.getElementById('stakeModalTitle');
         if (modalTitle) {
-            modalTitle.textContent = `Стейкинг - Ставка на ${direction === 'up' ? 'рост' : 'падение'}`;
+            modalTitle.textContent = `Торговля - Сделка на ${direction === 'up' ? 'рост' : 'падение'}`;
         }
         
         // Обновляем кнопку отправки
         const submitBtn = document.getElementById('stakeSubmitBtn');
         if (submitBtn) {
-            submitBtn.textContent = `Создать ставку на ${direction === 'up' ? 'рост' : 'падение'}`;
+            submitBtn.textContent = `Создать сделку на ${direction === 'up' ? 'рост' : 'падение'}`;
         }
         
         this.calculateStakePotential();
@@ -389,12 +412,12 @@ class CoinInfoPage {
             }
         });
         
-        // Обрабатываем завершенные ставки
+        // Обрабатываем завершенные сделки
         completedStakes.forEach(stake => {
             this.processStakeResult(stake);
         });
         
-        // Обновляем список ставок
+        // Обновляем список сделок
         if (completedStakes.length > 0) {
             localStorage.setItem('activeStakes', JSON.stringify(this.activeStakes));
             this.updateActiveStakesDisplay();
@@ -402,7 +425,7 @@ class CoinInfoPage {
         }
     }
 
-    // Расчет результата ставки
+    // Расчет результата сделки
     calculateStakeResult(stake) {
         const priceChange = this.currentPrice - stake.startPrice;
         const priceChangePercent = (priceChange / stake.startPrice) * 100;
@@ -414,7 +437,7 @@ class CoinInfoPage {
         }
     }
 
-    // Обработка результата ставки
+    // Обработка результата сделки
     processStakeResult(stake) {
         const user = JSON.parse(localStorage.getItem('user'));
         if (!user) return;
@@ -442,7 +465,7 @@ class CoinInfoPage {
             user.balance += winAmount;
             
             this.showToast(
-                `Поздравляем! Ставка на ${stake.direction === 'up' ? 'рост' : 'падение'} выиграла! ` +
+                `Поздравляем! Сделка на ${stake.direction === 'up' ? 'рост' : 'падение'} выиграла! ` +
                 `Изменение цены: ${priceChangePercent.toFixed(2)}% ` +
                 `Множитель: x${finalMultiplier.toFixed(2)} ` +
                 `Выигрыш: +$${winAmount.toFixed(2)}`,
@@ -452,12 +475,12 @@ class CoinInfoPage {
             // Проигрыш
             profit = -stake.amount;
             this.showToast(
-                `Ставка на ${stake.direction === 'up' ? 'рост' : 'падение'} проиграла. Потеряно: $${stake.amount.toFixed(2)}`,
+                `Сделка на ${stake.direction === 'up' ? 'рост' : 'падение'} проиграла. Потеряно: $${stake.amount.toFixed(2)}`,
                 'error'
             );
         }
         
-        // Сохраняем ставку в историю с дополнительной информацией
+        // Сохраняем сделку в историю с дополнительной информацией
         this.saveStakeToHistory(stake, winAmount, profit, finalMultiplier, priceChangePercent);
         
         localStorage.setItem('user', JSON.stringify(user));
@@ -468,7 +491,7 @@ class CoinInfoPage {
         }
     }
 
-    // Сохранение ставки в историю
+    // Сохранение сделки в историю
     saveStakeToHistory(stake, winAmount, profit, finalMultiplier, priceChangePercent) {
         const stakeHistory = JSON.parse(localStorage.getItem('stakeHistory')) || [];
         
@@ -498,10 +521,10 @@ class CoinInfoPage {
         stakeHistory.push(historyEntry);
         localStorage.setItem('stakeHistory', JSON.stringify(stakeHistory));
         
-        console.log('Ставка сохранена в историю:', historyEntry);
+        console.log('Сделка сохранена в историю:', historyEntry);
     }
 
-    // Обновление отображения активных ставок
+    // Обновление отображения активных сделок
     updateActiveStakesDisplay() {
         const activeStakesList = document.getElementById('activeStakesList');
         if (!activeStakesList) return;
@@ -509,7 +532,7 @@ class CoinInfoPage {
         const activeStakes = this.activeStakes.filter(stake => stake.status === 'active');
         
         if (activeStakes.length === 0) {
-            activeStakesList.innerHTML = '<p class="no-stakes">У вас нет активных ставок</p>';
+            activeStakesList.innerHTML = '<p class="no-stakes">У вас нет активных сделок</p>';
             return;
         }
         
@@ -808,10 +831,10 @@ class CoinInfoPage {
         if (blockTimeElement) blockTimeElement.textContent = this.currentCoin.blockTime || 'N/A';
         if (creatorElement) creatorElement.textContent = this.currentCoin.creator || 'N/A';
         
-        // Обновляем заголовок модального окна ставки
+        // Обновляем заголовок модального окна торговли
         const stakeModalTitle = document.getElementById('stakeModalTitle');
         if (stakeModalTitle) {
-            stakeModalTitle.textContent = `Стейкинг - Ставка на ${this.stakeDirection === 'up' ? 'рост' : 'падение'}`;
+            stakeModalTitle.textContent = `Торговля - Сделка на ${this.stakeDirection === 'up' ? 'рост' : 'падение'}`;
         }
     }
 

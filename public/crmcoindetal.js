@@ -346,7 +346,17 @@ function updateCoinDisplay() {
     if (infoName) infoName.textContent = currentCoin.name;
     if (infoSymbol) infoSymbol.textContent = currentCoin.symbol;
     if (infoCategory) infoCategory.textContent = getCategoryDisplayName(currentCoin.category);
-    if (infoStatus) infoStatus.textContent = getStatusDisplayName(currentCoin.status);
+    if (infoStatus) {
+        const statusBadge = document.getElementById('statusBadge');
+        if (statusBadge) {
+            statusBadge.textContent = getStatusDisplayName(currentCoin.status);
+            // Remove all status classes and add the current one
+            statusBadge.className = 'status-badge';
+            statusBadge.classList.add(currentCoin.status || 'active');
+        } else {
+            infoStatus.textContent = getStatusDisplayName(currentCoin.status);
+        }
+    }
     if (infoDescription) infoDescription.textContent = currentCoin.description || 'Описание не указано';
     
     // Update edit form
@@ -851,7 +861,9 @@ function getStatusDisplayName(status) {
     const statuses = {
         'active': 'Активная',
         'inactive': 'Неактивная',
-        'pending': 'Ожидающая'
+        'pending': 'Ожидающая',
+        'simulation-high': 'Simulation High',
+        'simulation-down': 'Simulation Down'
     };
     return statuses[status] || status;
 }

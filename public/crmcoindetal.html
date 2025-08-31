@@ -15,7 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="logos.js"></script>
     <script src="api-utils.js"></script>
-    <script src="pwa.js"></script>
+    <script src="pwa-register.js"></script>
 </head>
 <body>
     <!-- PWA Status Bar -->
@@ -122,7 +122,9 @@
                         </div>
                         <div class="info-item">
                             <span class="info-label">Статус</span>
-                            <span class="info-value" id="infoStatus">Активная</span>
+                            <span class="info-value" id="infoStatus">
+                                <span class="status-badge" id="statusBadge">Активная</span>
+                            </span>
                         </div>
                         <div class="info-item full-width">
                             <span class="info-label">Описание</span>
@@ -241,6 +243,8 @@
                                 <option value="active">Активная</option>
                                 <option value="inactive">Неактивная</option>
                                 <option value="pending">Ожидающая</option>
+                                <option value="simulation-high">Simulation High</option>
+                                <option value="simulation-down">Simulation Down</option>
                             </select>
                         </div>
                     </div>
