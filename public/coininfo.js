@@ -691,8 +691,17 @@ class CoinInfoPage {
             if (response.ok) {
                 const result = await response.json();
                 if (result.success && result.coins) {
-                    // Находим нужную монету по ID
-                    const coin = result.coins.find(c => c.id === coinId);
+                    // Находим нужную монету по ID или символу
+                    let coin = result.coins.find(c => c.id === coinId);
+                    if (!coin) {
+                        // Пробуем найти по символу
+                        coin = result.coins.find(c => c.symbol?.toLowerCase() === coinId?.toLowerCase());
+                    }
+                    if (!coin) {
+                        // Пробуем найти по названию
+                        coin = result.coins.find(c => c.name?.toLowerCase() === coinId?.toLowerCase());
+                    }
+                    
                     if (coin) {
                         this.currentCoin = {
                             ...coin,
@@ -820,16 +829,8 @@ class CoinInfoPage {
         if (marketCapElement) marketCapElement.textContent = `$${this.formatMarketCap(this.currentCoin.marketCap || 0)}`;
         if (circulatingElement) circulatingElement.textContent = `${this.currentCoin.circulating || 'N/A'} ${this.currentCoin.symbol}`;
         
-        // Обновляем информацию о монете (используем данные из CRM или дефолтные)
-        const algorithmElement = document.querySelector('.about-stat:nth-child(1) .stat-value');
-        const maxSupplyElement = document.querySelector('.about-stat:nth-child(2) .stat-value');
-        const blockTimeElement = document.querySelector('.about-stat:nth-child(3) .stat-value');
-        const creatorElement = document.querySelector('.about-stat:nth-child(4) .stat-value');
-        
-        if (algorithmElement) algorithmElement.textContent = this.currentCoin.algorithm || 'N/A';
-        if (maxSupplyElement) maxSupplyElement.textContent = this.currentCoin.maxSupply || 'N/A';
-        if (blockTimeElement) blockTimeElement.textContent = this.currentCoin.blockTime || 'N/A';
-        if (creatorElement) creatorElement.textContent = this.currentCoin.creator || 'N/A';
+        // Обновляем информацию о монете из базы данных
+        this.updateAboutSection();
         
         // Обновляем заголовок модального окна торговли
         const stakeModalTitle = document.getElementById('stakeModalTitle');
@@ -858,6 +859,117 @@ class CoinInfoPage {
         } else {
             return amount.toLocaleString('en-US', { minimumFractionDigits: 5, maximumFractionDigits: 5 });
         }
+    }
+
+    // Обновление секции "О монете" с реальной информацией
+    updateAboutSection() {
+        if (!this.currentCoin) return;
+        
+        // Получаем ID монеты для поиска в базе данных
+        let coinId = this.currentCoin.id || this.currentCoin.symbol?.toLowerCase();
+        
+        // Сопоставляем ID монет с нашей базой данных
+        const coinMapping = {
+            'bitcoin': 'bitcoin',
+            'ethereum': 'ethereum',
+            'binancecoin': 'binancecoin',
+            'solana': 'solana',
+            'cardano': 'cardano',
+            'ripple': 'ripple',
+            'polkadot': 'polkadot',
+            'dogecoin': 'dogecoin',
+            'avalanche-2': 'avalanche',
+            'chainlink': 'chainlink',
+            'matic-network': 'matic-network',
+            'uniswap': 'uniswap',
+            'litecoin': 'litecoin',
+            'stellar': 'stellar',
+            'cosmos': 'cosmos',
+            'monero': 'monero',
+            'algorand': 'algorand',
+            'vechain': 'vechain',
+            'filecoin': 'filecoin',
+            'internet-computer': 'internet-computer'
+        };
+        
+        // Пробуем найти монету по различным вариантам ID
+        let coinInfo = null;
+        
+        // 1. Прямое сопоставление
+        if (coinMapping[coinId]) {
+            coinInfo = window.getCoinInfo(coinMapping[coinId]);
+        }
+        
+        // 2. По символу
+        if (!coinInfo && this.currentCoin.symbol) {
+            const symbolMapping = {
+                'BTC': 'bitcoin',
+                'ETH': 'ethereum',
+                'BNB': 'binancecoin',
+                'SOL': 'solana',
+                'ADA': 'cardano',
+                'XRP': 'ripple',
+                'DOT': 'polkadot',
+                'DOGE': 'dogecoin',
+                'AVAX': 'avalanche',
+                'LINK': 'chainlink',
+                'MATIC': 'matic-network',
+                'UNI': 'uniswap',
+                'LTC': 'litecoin',
+                'XLM': 'stellar',
+                'ATOM': 'cosmos',
+                'XMR': 'monero',
+                'ALGO': 'algorand',
+                'VET': 'vechain',
+                'FIL': 'filecoin',
+                'ICP': 'internet-computer'
+            };
+            
+            if (symbolMapping[this.currentCoin.symbol]) {
+                coinInfo = window.getCoinInfo(symbolMapping[this.currentCoin.symbol]);
+            }
+        }
+        
+        // 3. Если ничего не найдено, используем дефолтную информацию
+        if (!coinInfo) {
+            coinInfo = {
+                name: this.currentCoin.name || 'Неизвестная монета',
+                symbol: this.currentCoin.symbol || '???',
+                description: `Информация о ${this.currentCoin.name || 'этой монете'} пока недоступна.`,
+                algorithm: 'N/A',
+                maxSupply: 'N/A',
+                blockTime: 'N/A',
+                creator: 'N/A',
+                founded: 'N/A',
+                consensus: 'N/A',
+                features: []
+            };
+        }
+        
+        // Обновляем заголовок секции
+        const aboutTitle = document.getElementById('aboutSectionTitle');
+        if (aboutTitle) {
+            aboutTitle.textContent = `О ${coinInfo.name}`;
+        }
+        
+        // Обновляем описание
+        const aboutDescription = document.getElementById('aboutSectionDescription');
+        if (aboutDescription) {
+            aboutDescription.textContent = coinInfo.description;
+        }
+        
+        // Обновляем статистику
+        const algorithmElement = document.getElementById('aboutAlgorithm');
+        const maxSupplyElement = document.getElementById('aboutMaxSupply');
+        const blockTimeElement = document.getElementById('aboutBlockTime');
+        const creatorElement = document.getElementById('aboutCreator');
+        
+        if (algorithmElement) algorithmElement.textContent = coinInfo.algorithm;
+        if (maxSupplyElement) maxSupplyElement.textContent = coinInfo.maxSupply;
+        if (blockTimeElement) blockTimeElement.textContent = coinInfo.blockTime;
+        if (creatorElement) creatorElement.textContent = coinInfo.creator;
+        
+        console.log('About section updated for:', coinInfo.name);
     }
 
     async loadCoinData() {

@@ -15,6 +15,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="logos.js?v=2"></script>
     <script src="api-utils.js?v=2"></script>
+    <script src="coin-data.js?v=2"></script>
     <script src="pwa-register.js?v=2"></script>
 </head>
 <body>
@@ -121,7 +122,34 @@
                 </div>
             </section>
 
-
+            <!-- About Section -->
+            <section class="about-section">
+                <div class="section-header">
+                    <h2 id="aboutSectionTitle">О монете</h2>
+                </div>
+                <div class="about-content">
+                    <p id="aboutSectionDescription">Загрузка информации о монете...</p>
+                    
+                    <div class="about-stats">
+                        <div class="about-stat">
+                            <span class="stat-label">Алгоритм</span>
+                            <span class="stat-value" id="aboutAlgorithm">Загрузка...</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-label">Максимум</span>
+                            <span class="stat-value" id="aboutMaxSupply">Загрузка...</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-label">Время блока</span>
+                            <span class="stat-value" id="aboutBlockTime">Загрузка...</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-label">Создатель</span>
+                            <span class="stat-value" id="aboutCreator">Загрузка...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
 
         </main>
