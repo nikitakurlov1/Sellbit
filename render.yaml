@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: crm-crypto-exchange
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    rootDir: Crm
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        value: ./crypto_data.db

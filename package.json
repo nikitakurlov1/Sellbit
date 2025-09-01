@@ -6,10 +6,12 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build": "npm install",
     "init-admin": "node init-admin.js",
     "init-roles": "node init-roles.js",
     "init-requisites": "node init-requisites.js",
     "init-all": "npm run init-roles && npm run init-admin && npm run init-requisites",
+    "init-production": "node init-production.js",
     "setup": "npm install && npm run init-all"
   },
   "dependencies": {
