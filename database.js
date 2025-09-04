@@ -318,7 +318,7 @@ const createUser = (user) => {
         db.run(
             'INSERT OR REPLACE INTO users (id, username, email, password, status, notes, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [user.id, user.username, user.email, user.password, user.status || 'pending', user.notes || null, user.createdAt],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -398,7 +398,7 @@ const updateUser = (id, updates) => {
         db.run(
             `UPDATE users SET ${fields} WHERE id = ?`,
             values,
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -414,7 +414,7 @@ const deleteUser = (id) => {
         db.run(
             'DELETE FROM users WHERE id = ?',
             [id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -430,7 +430,7 @@ const updateUserLastLogin = (id) => {
         db.run(
             'UPDATE users SET lastLogin = ? WHERE id = ?',
             [new Date().toISOString(), id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -447,7 +447,7 @@ const createAccount = (account) => {
         db.run(
             'INSERT OR REPLACE INTO accounts (id, userId, balance, createdAt) VALUES (?, ?, ?, ?)',
             [account.id, account.userId, JSON.stringify(account.balance), account.createdAt],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -481,12 +481,12 @@ const getAccountByUserId = (userId) => {
 const updateAccount = (userId, newBalance) => {
     return new Promise((resolve, reject) => {
         const timestamp = new Date().toISOString();
-
+        
         db.run(`
             UPDATE accounts 
             SET balance = ?
             WHERE userId = ?
-        `, [newBalance, userId], function (err) {
+        `, [newBalance, userId], function(err) {
             if (err) {
                 reject(err);
             } else {
@@ -508,7 +508,7 @@ const saveCoin = (coin) => {
                 coin.marketCap, coin.volume, coin.category, coin.status,
                 coin.description, coin.createdAt, coin.updatedAt
             ],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -556,7 +556,7 @@ const updateCoin = (id, updates) => {
         db.run(
             `UPDATE coins SET ${fields} WHERE id = ?`,
             values,
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -572,7 +572,7 @@ const deleteCoin = (id) => {
         db.run(
             'DELETE FROM coins WHERE id = ?',
             [id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -594,7 +594,7 @@ const savePriceHistory = (coinId, priceData) => {
                 coinId, priceData.price, priceData.priceChange,
                 priceData.marketCap, priceData.volume, new Date().toISOString()
             ],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -641,11 +641,11 @@ const getPriceHistoryByDateRange = (coinId, startDate, endDate) => {
 const cleanupOldPriceHistory = () => {
     return new Promise((resolve, reject) => {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
+        
         db.run(
             'DELETE FROM price_history WHERE timestamp < ?',
             [thirtyDaysAgo],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -663,7 +663,7 @@ const createRequisite = (requisite) => {
         db.run(
             'INSERT INTO requisites (id, type, name, number, bank, holder, status, description, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [requisite.id, requisite.type, requisite.name, requisite.number, requisite.bank, requisite.holder, requisite.status, requisite.description, requisite.createdAt, requisite.updatedAt],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -710,7 +710,7 @@ const updateRequisite = (id, requisite) => {
         db.run(
             'UPDATE requisites SET type = ?, name = ?, number = ?, bank = ?, holder = ?, status = ?, description = ?, updatedAt = ? WHERE id = ?',
             [requisite.type, requisite.name, requisite.number, requisite.bank, requisite.holder, requisite.status, requisite.description, requisite.updatedAt, id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -726,7 +726,7 @@ const deleteRequisite = (id) => {
         db.run(
             'DELETE FROM requisites WHERE id = ?',
             [id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -743,7 +743,7 @@ const createRole = (role) => {
         db.run(
             'INSERT OR REPLACE INTO roles (id, name, description, permissions, createdAt) VALUES (?, ?, ?, ?, ?)',
             [role.id, role.name, role.description, JSON.stringify(role.permissions), role.createdAt],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -814,11 +814,11 @@ const updateRole = (id, updates) => {
         if (updates.permissions) {
             updates.permissions = JSON.stringify(updates.permissions);
         }
-
+        
         db.run(
             `UPDATE roles SET ${fields} WHERE id = ?`,
             [...values, id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -834,7 +834,7 @@ const deleteRole = (id) => {
         db.run(
             'DELETE FROM roles WHERE id = ?',
             [id],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -851,7 +851,7 @@ const assignRoleToUser = (userRole) => {
         db.run(
             'INSERT OR REPLACE INTO user_roles (id, userId, roleId, assignedBy, assignedAt) VALUES (?, ?, ?, ?, ?)',
             [userRole.id, userRole.userId, userRole.roleId, userRole.assignedBy, userRole.assignedAt],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -887,7 +887,7 @@ const removeRoleFromUser = (userId, roleId) => {
         db.run(
             'DELETE FROM user_roles WHERE userId = ? AND roleId = ?',
             [userId, roleId],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -906,12 +906,12 @@ const getUserWithRoles = (userId) => {
                 reject(err);
                 return;
             }
-
+            
             if (!user) {
                 resolve(null);
                 return;
             }
-
+            
             // Then get user roles
             db.all(`
                 SELECT ur.*, r.name as roleName, r.description as roleDescription, r.permissions
@@ -923,14 +923,14 @@ const getUserWithRoles = (userId) => {
                     reject(err);
                     return;
                 }
-
+                
                 // Combine user data with roles and permissions
                 const result = {
                     ...user,
                     roles: userRoles.map(role => role.roleName),
                     userRoles: userRoles
                 };
-
+                
                 // Combine all permissions
                 const allPermissions = {};
                 userRoles.forEach(role => {
@@ -939,7 +939,7 @@ const getUserWithRoles = (userId) => {
                         Object.assign(allPermissions, permissions);
                     }
                 });
-
+                
                 result.allPermissions = allPermissions;
                 resolve(result);
             });
@@ -953,7 +953,7 @@ const logActivity = (activity) => {
         db.run(
             'INSERT INTO activity_log (id, userId, action, entityType, entityId, details, ipAddress, userAgent, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [activity.id, activity.userId, activity.action, activity.entityType, activity.entityId || null, JSON.stringify(activity.details), activity.ipAddress || null, activity.userAgent || null, activity.createdAt],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
@@ -971,46 +971,46 @@ const getActivityLog = (filters = {}) => {
             FROM activity_log al
             JOIN users u ON al.userId = u.id
         `;
-
+        
         const conditions = [];
         const params = [];
-
+        
         if (filters.userId) {
             conditions.push('al.userId = ?');
             params.push(filters.userId);
         }
-
+        
         if (filters.action) {
             conditions.push('al.action = ?');
             params.push(filters.action);
         }
-
+        
         if (filters.entityType) {
             conditions.push('al.entityType = ?');
             params.push(filters.entityType);
         }
-
+        
         if (filters.startDate) {
             conditions.push('al.createdAt >= ?');
             params.push(filters.startDate);
         }
-
+        
         if (filters.endDate) {
             conditions.push('al.createdAt <= ?');
             params.push(filters.endDate);
         }
-
+        
         if (conditions.length > 0) {
             query += ' WHERE ' + conditions.join(' AND ');
         }
-
+        
         query += ' ORDER BY al.createdAt DESC';
-
+        
         if (filters.limit) {
             query += ' LIMIT ?';
             params.push(filters.limit);
         }
-
+        
         db.all(query, params, (err, rows) => {
             if (err) {
                 reject(err);
@@ -1047,7 +1047,7 @@ const getUserPortfolio = (userId) => {
             WHERE up.userId = ? AND up.balance > 0
             ORDER BY up.lastUpdated DESC
         `;
-
+        
         db.all(query, [userId], (err, rows) => {
             if (err) {
                 reject(err);
@@ -1064,31 +1064,31 @@ const addToPortfolio = (userId, coinSymbol, coinName, amount, price, fee = 0) =>
         const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const timestamp = new Date().toISOString();
         const totalValue = amount * price;
-
+        
         // First, check if user already has this coin in portfolio
-        db.get('SELECT * FROM user_portfolio WHERE userId = ? AND coinSymbol = ?',
+        db.get('SELECT * FROM user_portfolio WHERE userId = ? AND coinSymbol = ?', 
             [userId, coinSymbol], (err, existing) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-
+                
                 if (existing) {
                     // Update existing portfolio entry
                     const newBalance = existing.balance + amount;
                     const newTotalInvested = existing.totalInvested + totalValue;
                     const newAveragePrice = newTotalInvested / newBalance;
-
+                    
                     db.run(`
                         UPDATE user_portfolio 
                         SET balance = ?, averageBuyPrice = ?, totalInvested = ?, lastUpdated = ?
                         WHERE userId = ? AND coinSymbol = ?
-                    `, [newBalance, newAveragePrice, newTotalInvested, timestamp, userId, coinSymbol], function (err) {
+                    `, [newBalance, newAveragePrice, newTotalInvested, timestamp, userId, coinSymbol], function(err) {
                         if (err) {
                             reject(err);
                             return;
                         }
-
+                        
                         // Add transaction record
                         addPortfolioTransaction(transactionId, userId, coinSymbol, 'buy', amount, price, totalValue, fee, newBalance, timestamp)
                             .then(() => resolve({ success: true, newBalance, averagePrice: newAveragePrice }))
@@ -1097,16 +1097,16 @@ const addToPortfolio = (userId, coinSymbol, coinName, amount, price, fee = 0) =>
                 } else {
                     // Create new portfolio entry
                     const portfolioId = `portfolio_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
+                    
                     db.run(`
                         INSERT INTO user_portfolio (id, userId, coinSymbol, coinName, balance, averageBuyPrice, totalInvested, lastUpdated, createdAt)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                    `, [portfolioId, userId, coinSymbol, coinName, amount, price, totalValue, timestamp, timestamp], function (err) {
+                    `, [portfolioId, userId, coinSymbol, coinName, amount, price, totalValue, timestamp, timestamp], function(err) {
                         if (err) {
                             reject(err);
                             return;
                         }
-
+                        
                         // Add transaction record
                         addPortfolioTransaction(transactionId, userId, coinSymbol, 'buy', amount, price, totalValue, fee, amount, timestamp)
                             .then(() => resolve({ success: true, newBalance: amount, averagePrice: price }))
@@ -1123,31 +1123,31 @@ const removeFromPortfolio = (userId, coinSymbol, amount, price, fee = 0) => {
         const transactionId = `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const timestamp = new Date().toISOString();
         const totalValue = amount * price;
-
+        
         // Check if user has enough coins
-        db.get('SELECT * FROM user_portfolio WHERE userId = ? AND coinSymbol = ?',
+        db.get('SELECT * FROM user_portfolio WHERE userId = ? AND coinSymbol = ?', 
             [userId, coinSymbol], (err, existing) => {
                 if (err) {
                     reject(err);
                     return;
                 }
-
+                
                 if (!existing || existing.balance < amount) {
                     reject(new Error('Insufficient coins in portfolio'));
                     return;
                 }
-
+                
                 const newBalance = existing.balance - amount;
-
+                
                 if (newBalance === 0) {
                     // Remove portfolio entry completely
-                    db.run('DELETE FROM user_portfolio WHERE userId = ? AND coinSymbol = ?',
-                        [userId, coinSymbol], function (err) {
+                    db.run('DELETE FROM user_portfolio WHERE userId = ? AND coinSymbol = ?', 
+                        [userId, coinSymbol], function(err) {
                             if (err) {
                                 reject(err);
                                 return;
                             }
-
+                            
                             // Add transaction record
                             addPortfolioTransaction(transactionId, userId, coinSymbol, 'sell', amount, price, totalValue, fee, 0, timestamp)
                                 .then(() => resolve({ success: true, newBalance: 0, soldAmount: amount }))
@@ -1159,12 +1159,12 @@ const removeFromPortfolio = (userId, coinSymbol, amount, price, fee = 0) => {
                         UPDATE user_portfolio 
                         SET balance = ?, lastUpdated = ?
                         WHERE userId = ? AND coinSymbol = ?
-                    `, [newBalance, timestamp, userId, coinSymbol], function (err) {
+                    `, [newBalance, timestamp, userId, coinSymbol], function(err) {
                         if (err) {
                             reject(err);
                             return;
                         }
-
+                        
                         // Add transaction record
                         addPortfolioTransaction(transactionId, userId, coinSymbol, 'sell', amount, price, totalValue, fee, newBalance, timestamp)
                             .then(() => resolve({ success: true, newBalance, soldAmount: amount }))
@@ -1179,12 +1179,12 @@ const removeFromPortfolio = (userId, coinSymbol, amount, price, fee = 0) => {
 const updatePortfolioBalance = (userId, coinSymbol, newBalance) => {
     return new Promise((resolve, reject) => {
         const timestamp = new Date().toISOString();
-
+        
         db.run(`
             UPDATE user_portfolio 
             SET balance = ?, lastUpdated = ?
             WHERE userId = ? AND coinSymbol = ?
-        `, [newBalance, timestamp, userId, coinSymbol], function (err) {
+        `, [newBalance, timestamp, userId, coinSymbol], function(err) {
             if (err) {
                 reject(err);
             } else {
@@ -1200,7 +1200,7 @@ const addPortfolioTransaction = (transactionId, userId, coinSymbol, transactionT
         db.run(`
             INSERT INTO portfolio_transactions (id, userId, coinSymbol, transactionType, amount, price, totalValue, fee, balance, timestamp, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [transactionId, userId, coinSymbol, transactionType, amount, price, totalValue, fee, balance, timestamp, 'completed'], function (err) {
+        `, [transactionId, userId, coinSymbol, transactionType, amount, price, totalValue, fee, balance, timestamp, 'completed'], function(err) {
             if (err) {
                 reject(err);
             } else {
@@ -1228,34 +1228,34 @@ const getPortfolioTransactions = (userId, filters = {}) => {
     return new Promise((resolve, reject) => {
         let query = 'SELECT * FROM portfolio_transactions WHERE userId = ?';
         const params = [userId];
-
+        
         if (filters.coinSymbol) {
             query += ' AND coinSymbol = ?';
             params.push(filters.coinSymbol);
         }
-
+        
         if (filters.transactionType) {
             query += ' AND transactionType = ?';
             params.push(filters.transactionType);
         }
-
+        
         if (filters.startDate) {
             query += ' AND timestamp >= ?';
             params.push(filters.startDate);
         }
-
+        
         if (filters.endDate) {
             query += ' AND timestamp <= ?';
             params.push(filters.endDate);
         }
-
+        
         query += ' ORDER BY timestamp DESC';
-
+        
         if (filters.limit) {
             query += ' LIMIT ?';
             params.push(filters.limit);
         }
-
+        
         db.all(query, params, (err, rows) => {
             if (err) {
                 reject(err);
@@ -1278,7 +1278,7 @@ const getPortfolioValue = (userId) => {
             LEFT JOIN coins c ON up.coinSymbol = c.symbol
             WHERE up.userId = ? AND up.balance > 0
         `;
-
+        
         db.get(query, [userId], (err, row) => {
             if (err) {
                 reject(err);
@@ -1308,11 +1308,11 @@ const closeDatabase = () => {
     });
 };
 
+// Portfolio operations (Updated for new schema) - Function already defined above
 
+// addToPortfolio function already defined above
 
-// ...existing code...
-
-// ...existing code...
+// removeFromPortfolio function already defined above
 
 // Operation logs (Updated for new schema)
 const logOperation = (operationData) => {
@@ -1330,7 +1330,7 @@ const logOperation = (operationData) => {
             ip_address: operationData.ip_address,
             user_agent: operationData.user_agent
         });
-
+        
         db.run(
             'INSERT INTO operation_logs (id, user_id, operation, data, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
             [
@@ -1341,7 +1341,7 @@ const logOperation = (operationData) => {
                 'completed',
                 operationData.created_at
             ],
-            function (err) {
+            function(err) {
                 if (err) {
                     reject(err);
                 } else {
