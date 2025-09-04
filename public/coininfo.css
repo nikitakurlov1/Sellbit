@@ -264,9 +264,12 @@ body {
     border: none;
     border-radius: 12px;
     padding: 0;
-    height: 200px;
+    height: 280px;
     position: relative;
     width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .time-controls {
@@ -1436,7 +1439,7 @@ select.form-input:focus {
     }
 
     .chart-container {
-        height: 180px;
+        height: 260px;
         padding: 12px;
     }
 

@@ -46,6 +46,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         await loadAssets();
         await loadRecentTransactions();
         
+        // Сбрасываем статистику к реалистичным значениям
+        resetStatsToRealistic();
+        
         // Инициализируем состояние секций
         initializeSections();
         
@@ -480,21 +483,65 @@ function updateStats() {
     const user = JSON.parse(localStorage.getItem('user'));
     const userBalance = user ? user.balance : 0;
     
-    // Подсчитываем активные ставки
+    // Инициализируем или получаем стабильные статистики
+    let userStats = JSON.parse(localStorage.getItem('userStats'));
+    if (!userStats || !userStats.lastUpdate) {
+        userStats = {
+            monthlyChange: 0,
+            assetsCount: 0,
+            activeStakes: 0,
+            lastUpdate: Date.now()
+        };
+        localStorage.setItem('userStats', JSON.stringify(userStats));
+    }
+    
+    // Проверяем на нереалистичные значения и сбрасываем их
+    if (userStats.monthlyChange > 1000 || userStats.monthlyChange < -100) {
+        userStats.monthlyChange = 0;
+    }
+    if (userStats.assetsCount < 0 || userStats.assetsCount > 1000) {
+        userStats.assetsCount = 0;
+    }
+    if (userStats.activeStakes < 0 || userStats.activeStakes > 100) {
+        userStats.activeStakes = 0;
+    }
+    
+    // Подсчитываем активные ставки из реальных данных
     const activeStakes = JSON.parse(localStorage.getItem('activeStakes')) || [];
     const activeStakesCount = activeStakes.filter(stake => stake.status === 'active').length;
     
-    // Подсчитываем количество активов (покупки - продажи)
+    // Подсчитываем количество активов из реальных данных
     const purchases = JSON.parse(localStorage.getItem('purchases')) || [];
     const sales = JSON.parse(localStorage.getItem('sales')) || [];
-    const assetsCount = purchases.length - sales.length;
+    const realAssetsCount = Math.max(0, purchases.length - sales.length);
     
-    // Рассчитываем изменение за месяц на основе снэпшота
+    // Рассчитываем изменение за месяц с ограничениями
     const snapshot = getMonthlySnapshot();
     let monthlyChange = 0;
-    if (snapshot && snapshot.amount > 0) {
-        monthlyChange = ((userBalance - snapshot.amount) / snapshot.amount) * 100;
+    
+    if (snapshot && snapshot.amount > 0 && userBalance > 0) {
+        const rawChange = ((userBalance - snapshot.amount) / snapshot.amount) * 100;
+        // Ограничиваем изменение от -100% до +1000% для реалистичности
+        monthlyChange = Math.max(-100, Math.min(1000, rawChange));
     }
+    
+    // Обновляем статистики только если есть реальные изменения
+    if (activeStakesCount !== userStats.activeStakes) {
+        userStats.activeStakes = activeStakesCount;
+    }
+    
+    if (realAssetsCount !== userStats.assetsCount) {
+        userStats.assetsCount = realAssetsCount;
+    }
+    
+    // Обновляем месячное изменение только если разница значительная и реалистичная
+    const changeDifference = Math.abs(monthlyChange - userStats.monthlyChange);
+    if (changeDifference > 0.1 && monthlyChange >= -100 && monthlyChange <= 1000) {
+        userStats.monthlyChange = monthlyChange;
+    }
+    
+    userStats.lastUpdate = Date.now();
+    localStorage.setItem('userStats', JSON.stringify(userStats));
     
     // Обновляем отображение статистики
     const monthlyChangeElement = document.getElementById('monthlyChange');
@@ -502,14 +549,14 @@ function updateStats() {
     const activeStakesElement = document.getElementById('activeStakes');
 
     if (monthlyChangeElement) {
-        const sign = monthlyChange >= 0 ? '+' : '';
-        monthlyChangeElement.textContent = `${sign}${monthlyChange.toFixed(2)}%`;
+        const sign = userStats.monthlyChange >= 0 ? '+' : '';
+        monthlyChangeElement.textContent = `${sign}${userStats.monthlyChange.toFixed(2)}%`;
     }
     if (assetsCountElement) {
-        assetsCountElement.textContent = Math.max(0, assetsCount);
+        assetsCountElement.textContent = userStats.assetsCount;
     }
     if (activeStakesElement) {
-        activeStakesElement.textContent = activeStakesCount;
+        activeStakesElement.textContent = userStats.activeStakes;
     }
 }
 
@@ -517,20 +564,8 @@ function loadActiveStakes() {
     const savedStakes = localStorage.getItem('activeStakes');
     const activeStakes = savedStakes ? JSON.parse(savedStakes).filter(stake => stake.status === 'active') : [];
     
-    // Обновляем счетчик активных ставок
-    const userStats = JSON.parse(localStorage.getItem('userStats')) || {
-        monthlyChange: 2.92,
-        assetsCount: 5,
-        activeStakes: 0
-    };
-    userStats.activeStakes = activeStakes.length;
-    localStorage.setItem('userStats', JSON.stringify(userStats));
-    
-    // Обновляем отображение в статистике
-    const activeStakesElement = document.getElementById('activeStakes');
-    if (activeStakesElement) {
-        activeStakesElement.textContent = activeStakes.length;
-    }
+    // Обновляем статистики через единую функцию
+    updateStats();
     
     // Если есть активные ставки, показываем их в отдельной секции
     const mainContent = document.querySelector('.main-content');
@@ -590,51 +625,6 @@ function loadActiveStakes() {
     }
 }
 
-// Функция для обновления статистики при изменении баланса
-function updateStatsOnBalanceChange() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userBalance = user ? user.balance : 0;
-    
-    // Если баланс нулевой, показываем все нули
-    if (userBalance <= 0) {
-        const monthlyChangeElement = document.getElementById('monthlyChange');
-        const assetsCountElement = document.getElementById('assetsCount');
-        const activeStakesElement = document.getElementById('activeStakes');
-
-        if (monthlyChangeElement) {
-            monthlyChangeElement.textContent = '+0.00%';
-        }
-        if (assetsCountElement) {
-            assetsCountElement.textContent = '0';
-        }
-        if (activeStakesElement) {
-            activeStakesElement.textContent = '0';
-        }
-        return;
-    }
-
-    // Получаем настоящие данные из localStorage или используем значения по умолчанию
-    const userStats = JSON.parse(localStorage.getItem('userStats')) || {
-        monthlyChange: 2.92,
-        assetsCount: 5,
-        activeStakes: 0
-    };
-
-    // Обновляем отображение статистики
-    const monthlyChangeElement = document.getElementById('monthlyChange');
-    const assetsCountElement = document.getElementById('assetsCount');
-    const activeStakesElement = document.getElementById('activeStakes');
-
-    if (monthlyChangeElement) {
-        monthlyChangeElement.textContent = `+${userStats.monthlyChange.toFixed(2)}%`;
-    }
-    if (assetsCountElement) {
-        assetsCountElement.textContent = userStats.assetsCount;
-    }
-    if (activeStakesElement) {
-        activeStakesElement.textContent = userStats.activeStakes;
-    }
-}
 
 function startStakesTimers(stakes) {
     stakes.forEach(stake => {
@@ -769,33 +759,49 @@ function showToast(title, message, type = 'info') {
 
 // Функции для обновления статистики
 function updateMonthlyChange(newChange) {
-    const userStats = JSON.parse(localStorage.getItem('userStats')) || {};
+    const userStats = JSON.parse(localStorage.getItem('userStats')) || {
+        monthlyChange: 0,
+        assetsCount: 0,
+        activeStakes: 0,
+        lastUpdate: Date.now()
+    };
     userStats.monthlyChange = newChange;
+    userStats.lastUpdate = Date.now();
     localStorage.setItem('userStats', JSON.stringify(userStats));
     updateStats();
 }
 
 function updateAssetsCount(newCount) {
-    const userStats = JSON.parse(localStorage.getItem('userStats')) || {};
-    userStats.assetsCount = newCount;
+    const userStats = JSON.parse(localStorage.getItem('userStats')) || {
+        monthlyChange: 0,
+        assetsCount: 0,
+        activeStakes: 0,
+        lastUpdate: Date.now()
+    };
+    userStats.assetsCount = Math.max(0, newCount);
+    userStats.lastUpdate = Date.now();
     localStorage.setItem('userStats', JSON.stringify(userStats));
     updateStats();
 }
 
 function updateActiveStakes(newStakes) {
-    const userStats = JSON.parse(localStorage.getItem('userStats')) || {};
-    userStats.activeStakes = newStakes;
+    const userStats = JSON.parse(localStorage.getItem('userStats')) || {
+        monthlyChange: 0,
+        assetsCount: 0,
+        activeStakes: 0,
+        lastUpdate: Date.now()
+    };
+    userStats.activeStakes = Math.max(0, newStakes);
+    userStats.lastUpdate = Date.now();
     localStorage.setItem('userStats', JSON.stringify(userStats));
     updateStats();
 }
 
 // Функция для получения текущей статистики
 function getCurrentStats() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    const userBalance = user ? user.balance : 0;
+    const userStats = JSON.parse(localStorage.getItem('userStats'));
     
-    // Если баланс нулевой, возвращаем нули
-    if (userBalance <= 0) {
+    if (!userStats) {
         return {
             monthlyChange: 0,
             assetsCount: 0,
@@ -803,11 +809,37 @@ function getCurrentStats() {
         };
     }
     
-    return JSON.parse(localStorage.getItem('userStats')) || {
-        monthlyChange: 2.92,
-        assetsCount: 5,
-        activeStakes: 3
+    return {
+        monthlyChange: userStats.monthlyChange || 0,
+        assetsCount: userStats.assetsCount || 0,
+        activeStakes: userStats.activeStakes || 0
     };
+}
+
+// Функция для сброса статистики к реалистичным значениям
+function resetStatsToRealistic() {
+    const userStats = {
+        monthlyChange: 0,
+        assetsCount: 0,
+        activeStakes: 0,
+        lastUpdate: Date.now()
+    };
+    localStorage.setItem('userStats', JSON.stringify(userStats));
+    
+    // Обновляем отображение
+    const monthlyChangeElement = document.getElementById('monthlyChange');
+    const assetsCountElement = document.getElementById('assetsCount');
+    const activeStakesElement = document.getElementById('activeStakes');
+
+    if (monthlyChangeElement) {
+        monthlyChangeElement.textContent = '+0.00%';
+    }
+    if (assetsCountElement) {
+        assetsCountElement.textContent = '0';
+    }
+    if (activeStakesElement) {
+        activeStakesElement.textContent = '0';
+    }
 }
 
 // Обработчики форм
