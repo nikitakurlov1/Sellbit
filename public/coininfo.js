@@ -819,6 +819,13 @@ class CoinInfoPage {
         if (coinName) coinName.textContent = this.currentCoin.name;
         if (coinSymbol) coinSymbol.textContent = this.currentCoin.symbol;
         
+        // Обновляем логотип в основном отображении цены
+        const coinLogoElement = document.getElementById('coinLogo');
+        if (coinLogoElement && window.CryptoLogos) {
+            coinLogoElement.src = window.CryptoLogos.getCoinLogoBySymbol(this.currentCoin.symbol);
+            coinLogoElement.alt = this.currentCoin.symbol;
+        }
+        
         // Обновляем цену и изменение
         this.currentPrice = this.currentCoin.price || 0;
         this.priceChange = this.currentCoin.priceChange || 0;
