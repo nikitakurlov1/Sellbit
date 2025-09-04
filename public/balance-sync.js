@@ -3,11 +3,20 @@
 class BalanceSync {
     constructor() {
         this.syncInterval = null;
+        this.isOnline = navigator.onLine;
+        this.consecutiveFailures = 0;
+        this.maxRetries = 5;
+        this.baseDelay = 5000; // 5 seconds
+        this.maxDelay = 300000; // 5 minutes
+        this.currentDelay = this.baseDelay;
         this.init();
     }
 
     init() {
-        // Запускаем синхронизацию каждые 5 секунд
+        // Слушаем изменения состояния сети
+        this.setupNetworkListeners();
+        
+        // Запускаем синхронизацию с учетом состояния сети
         this.startSync();
         
         // Слушаем изменения в localStorage
@@ -15,9 +24,20 @@ class BalanceSync {
     }
 
     startSync() {
+        if (!this.isOnline) {
+            console.log('Offline mode - sync paused');
+            return;
+        }
+        
+        if (this.syncInterval) {
+            clearInterval(this.syncInterval);
+        }
+        
         this.syncInterval = setInterval(() => {
-            this.syncBalance();
-        }, 5000);
+            if (this.isOnline) {
+                this.syncBalance();
+            }
+        }, this.currentDelay);
     }
 
     stopSync() {
@@ -29,6 +49,10 @@ class BalanceSync {
 
     // Синхронизация баланса с сервером
     async syncBalance() {
+        if (!this.isOnline) {
+            return;
+        }
+        
         try {
             const currentUser = JSON.parse(localStorage.getItem('user'));
             const authToken = localStorage.getItem('authToken');
@@ -43,12 +67,17 @@ class BalanceSync {
             const response = await fetch(`/api/users/${payload.userId}/balance`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`
-                }
+                },
+                signal: AbortSignal.timeout(10000) // 10 second timeout
             });
 
             if (response.ok) {
                 const result = await response.json();
                 if (result.success) {
+                    // Reset failure counter on success
+                    this.consecutiveFailures = 0;
+                    this.currentDelay = this.baseDelay;
+                    
                     const serverBalance = result.balance;
                     const localBalance = currentUser.balance || 0;
 
@@ -74,9 +103,11 @@ class BalanceSync {
                         }
                     }
                 }
+            } else {
+                this.handleSyncFailure();
             }
         } catch (error) {
-            console.error('Ошибка синхронизации баланса:', error);
+            this.handleSyncFailure(error);
         }
     }
 
@@ -128,9 +159,14 @@ class BalanceSync {
 
     // Обновление баланса на сервере
     static async updateServerBalance(newBalance) {
+        if (!navigator.onLine) {
+            console.log('Offline - balance update queued');
+            return false;
+        }
+        
         try {
             const authToken = localStorage.getItem('authToken');
-            if (!authToken) return;
+            if (!authToken) return false;
 
             // Используем userId из JWT токена
             const payload = JSON.parse(atob(authToken.split('.')[1]));
@@ -140,7 +176,8 @@ class BalanceSync {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`
                 },
-                body: JSON.stringify({ balance: newBalance })
+                body: JSON.stringify({ balance: newBalance }),
+                signal: AbortSignal.timeout(10000) // 10 second timeout
             });
 
             if (response.ok) {
@@ -152,7 +189,11 @@ class BalanceSync {
             }
             return false;
         } catch (error) {
-            console.error('Ошибка обновления баланса на сервере:', error);
+            if (error.name === 'AbortError') {
+                console.warn('Balance update timeout');
+            } else {
+                console.error('Ошибка обновления баланса на сервере:', error.message);
+            }
             return false;
         }
     }
@@ -263,6 +304,50 @@ class BalanceSync {
                 }
             }, 5000);
         }
+    }
+
+    // Обработка неудачных попыток синхронизации
+    handleSyncFailure(error = null) {
+        this.consecutiveFailures++;
+        
+        // Логируем только первые несколько ошибок, чтобы не засорять консоль
+        if (this.consecutiveFailures <= 3) {
+            if (error) {
+                console.warn(`Sync failure #${this.consecutiveFailures}:`, error.message || error);
+            } else {
+                console.warn(`Sync failure #${this.consecutiveFailures}: Server error`);
+            }
+        }
+        
+        // Увеличиваем задержку экспоненциально
+        if (this.consecutiveFailures >= this.maxRetries) {
+            this.currentDelay = Math.min(this.currentDelay * 2, this.maxDelay);
+            console.warn(`Increasing sync delay to ${this.currentDelay / 1000} seconds`);
+            this.restartSync();
+        }
+    }
+    
+    // Настройка слушателей состояния сети
+    setupNetworkListeners() {
+        window.addEventListener('online', () => {
+            console.log('Network connection restored');
+            this.isOnline = true;
+            this.consecutiveFailures = 0;
+            this.currentDelay = this.baseDelay;
+            this.startSync();
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('Network connection lost');
+            this.isOnline = false;
+            this.stopSync();
+        });
+    }
+    
+    // Перезапуск синхронизации с новой задержкой
+    restartSync() {
+        this.stopSync();
+        this.startSync();
     }
 }
 

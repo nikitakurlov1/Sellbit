@@ -468,7 +468,23 @@ const getAccountByUserId = (userId) => {
                     reject(err);
                 } else {
                     if (row) {
-                        row.balance = JSON.parse(row.balance);
+                        try {
+                            // Try to parse as JSON first
+                            row.balance = JSON.parse(row.balance);
+                        } catch (parseError) {
+                            // If JSON parsing fails, handle different formats
+                            if (row.balance === 'NaN' || row.balance === null || row.balance === undefined) {
+                                // Set default balance if corrupted
+                                row.balance = { USD: 0 };
+                            } else if (!isNaN(parseFloat(row.balance))) {
+                                // If it's a valid number, convert to object format
+                                row.balance = { USD: parseFloat(row.balance) };
+                            } else {
+                                // Default fallback
+                                row.balance = { USD: 0 };
+                            }
+                            console.warn(`Fixed corrupted balance for user ${userId}: was "${row.balance}", now set to default`);
+                        }
                     }
                     resolve(row);
                 }
@@ -1329,6 +1345,55 @@ const logOperation = (operationData) => {
 };
 
 // Close database connection
+// Fix corrupted balance entries in the database
+const fixCorruptedBalances = () => {
+    return new Promise((resolve, reject) => {
+        console.log('Checking for corrupted balance entries...');
+        
+        // Find accounts with corrupted balances
+        db.all('SELECT userId, balance FROM accounts WHERE balance = "NaN" OR balance IS NULL OR balance = ""', (err, rows) => {
+            if (err) {
+                reject(err);
+                return;
+            }
+            
+            if (rows.length === 0) {
+                console.log('No corrupted balances found.');
+                resolve();
+                return;
+            }
+            
+            console.log(`Found ${rows.length} corrupted balance entries. Fixing...`);
+            
+            // Fix each corrupted balance
+            const fixes = rows.map(row => {
+                return new Promise((fixResolve, fixReject) => {
+                    const defaultBalance = JSON.stringify({ USD: 500 }); // Default starting balance
+                    db.run(
+                        'UPDATE accounts SET balance = ? WHERE userId = ?',
+                        [defaultBalance, row.userId],
+                        (updateErr) => {
+                            if (updateErr) {
+                                fixReject(updateErr);
+                            } else {
+                                console.log(`Fixed balance for user ${row.userId}`);
+                                fixResolve();
+                            }
+                        }
+                    );
+                });
+            });
+            
+            Promise.all(fixes)
+                .then(() => {
+                    console.log('All corrupted balances have been fixed.');
+                    resolve();
+                })
+                .catch(reject);
+        });
+    });
+};
+
 const closeDatabase = () => {
     return new Promise((resolve, reject) => {
         db.close((err) => {
@@ -1394,5 +1459,7 @@ module.exports = {
     getPortfolioValue,
     // Operation logs
     logOperation,
+    // Database maintenance
+    fixCorruptedBalances,
     closeDatabase
 };

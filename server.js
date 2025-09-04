@@ -2538,7 +2538,19 @@ app.post('/api/users/:userId/portfolio/buy', async (req, res) => {
     const account = await db.getAccountByUserId(req.params.userId);
     const totalCost = (amount * price) + fee;
 
-    if (!account || parseFloat(account.balance) < totalCost) {
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        errors: ['Аккаунт не найден']
+      });
+    }
+
+    // Handle balance as object (e.g., {USD: 500}) or as number
+    const currentBalance = typeof account.balance === 'object' 
+      ? (account.balance.USD || 0) 
+      : parseFloat(account.balance) || 0;
+
+    if (currentBalance < totalCost) {
       return res.status(400).json({
         success: false,
         errors: ['Недостаточно средств на балансе']
@@ -2546,11 +2558,14 @@ app.post('/api/users/:userId/portfolio/buy', async (req, res) => {
     }
 
     // Update user balance
-    const newBalance = parseFloat(account.balance) - totalCost;
-    await db.updateAccount(req.params.userId, newBalance.toString());
+    const newBalance = currentBalance - totalCost;
+    const balanceUpdate = typeof account.balance === 'object' 
+      ? { ...account.balance, USD: newBalance }
+      : newBalance.toString();
+    await db.updateAccount(req.params.userId, balanceUpdate);
 
-    // Add to portfolio
-    const result = await db.addToPortfolio(req.params.userId, coinSymbol, coinName, amount, price, fee);
+    // Add to portfolio (using coinSymbol as coinId for consistency)
+    const result = await db.addToPortfolio(req.params.userId, coinSymbol, amount, price);
 
     // Log activity
     await db.logActivity({
@@ -2612,16 +2627,29 @@ app.post('/api/users/:userId/portfolio/sell', async (req, res) => {
       });
     }
 
-    // Remove from portfolio
-    const result = await db.removeFromPortfolio(req.params.userId, coinSymbol, amount, price, fee);
+    // Get account first to check balance format
+    const account = await db.getAccountByUserId(req.params.userId);
+    if (!account) {
+      return res.status(404).json({
+        success: false,
+        errors: ['Аккаунт не найден']
+      });
+    }
+
+    // Remove from portfolio (using coinSymbol as coinId for consistency)
+    const result = await db.removeFromPortfolio(req.params.userId, coinSymbol, amount);
 
     // Update user balance
-    const account = await db.getAccountByUserId(req.params.userId);
-    const currentBalance = parseFloat(account.balance);
+    const currentBalance = typeof account.balance === 'object' 
+      ? (account.balance.USD || 0) 
+      : parseFloat(account.balance) || 0;
     const saleValue = (amount * price) - fee;
     const newBalance = currentBalance + saleValue;
     
-    await db.updateAccount(req.params.userId, newBalance.toString());
+    const balanceUpdate = typeof account.balance === 'object' 
+      ? { ...account.balance, USD: newBalance }
+      : newBalance.toString();
+    await db.updateAccount(req.params.userId, balanceUpdate);
 
     // Log activity
     await db.logActivity({
@@ -3004,6 +3032,10 @@ server.listen(PORT, async () => {
     // Initialize database
     await db.initializeDatabase();
     console.log('Database initialized successfully');
+    
+    // Fix any corrupted balance entries
+    await db.fixCorruptedBalances();
+    console.log('Database maintenance completed');
     
     // Initialize roles system
     await initializeRoles();

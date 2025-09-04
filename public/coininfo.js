@@ -12,6 +12,8 @@ class CoinInfoPage {
         this.balanceSync = null; // BalanceSync instance
         this.activeStakes = []; // Активные ставки
         this.stakeDirection = 'up'; // Направление ставки
+        this.wsReconnectAttempts = 0; // WebSocket reconnection attempts
+        this.setupNetworkListeners();
         this.init();
     }
 
@@ -697,7 +699,7 @@ class CoinInfoPage {
             const authToken = localStorage.getItem('authToken');
             if (!authToken) {
                 console.error('No auth token found');
-                this.showToast('Ошибка', 'Необходима авторизация', 'error');
+                this.showToast('Необходима авторизация', 'error');
                 return;
             }
 
@@ -705,7 +707,8 @@ class CoinInfoPage {
             const response = await fetch('/api/coins/exchange', {
                 headers: {
                     'Authorization': `Bearer ${authToken}`
-                }
+                },
+                signal: AbortSignal.timeout(10000) // 10 second timeout
             });
 
             if (response.ok) {
@@ -731,19 +734,24 @@ class CoinInfoPage {
                         this.updateCoinInfo();
                     } else {
                         console.error('Coin not found:', coinId);
-                        this.showToast('Ошибка', 'Монета не найдена', 'error');
+                        this.showToast('Монета не найдена', 'error');
                     }
                 } else {
                     console.error('Failed to load coins data');
-                    this.showToast('Ошибка', 'Не удалось загрузить данные монет', 'error');
+                    this.showToast('Не удалось загрузить данные монет', 'error');
                 }
             } else {
                 console.error('Failed to load coins:', response.status);
-                this.showToast('Ошибка', 'Не удалось загрузить данные монет', 'error');
+                this.showToast('Ошибка загрузки данных', 'error');
             }
         } catch (error) {
-            console.error('Error loading coin from CRM:', error);
-            this.showToast('Ошибка', 'Не удалось загрузить данные монет', 'error');
+            if (error.name === 'AbortError') {
+                console.warn('Coin loading timeout');
+                this.showToast('Таймаут загрузки данных', 'warning');
+            } else {
+                console.error('Error loading coin from CRM:', error.message);
+                this.showToast('Ошибка сети', 'error');
+            }
         }
     }
 
@@ -1014,6 +1022,12 @@ class CoinInfoPage {
 
     // Initialize WebSocket connection for real-time updates
     initializeWebSocket() {
+        // Don't initialize if offline
+        if (!navigator.onLine) {
+            console.log('Offline - WebSocket initialization skipped');
+            return;
+        }
+        
         try {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}`;
@@ -1024,6 +1038,7 @@ class CoinInfoPage {
             
             this.ws.onopen = () => {
                 console.log('WebSocket connection established for coininfo');
+                this.wsReconnectAttempts = 0;
             };
             
             this.ws.onmessage = (event) => {
@@ -1051,13 +1066,26 @@ class CoinInfoPage {
             };
             
             this.ws.onclose = () => {
-                console.log('WebSocket connection closed for coininfo');
-                // Reconnect after 5 seconds
-                setTimeout(() => this.initializeWebSocket(), 5000);
+                if (navigator.onLine) {
+                    this.wsReconnectAttempts = (this.wsReconnectAttempts || 0) + 1;
+                    const delay = Math.min(5000 * Math.pow(2, this.wsReconnectAttempts - 1), 30000);
+                    
+                    if (this.wsReconnectAttempts <= 5) {
+                        console.log(`WebSocket reconnecting in ${delay/1000}s (attempt ${this.wsReconnectAttempts})`);
+                        setTimeout(() => this.initializeWebSocket(), delay);
+                    } else {
+                        console.warn('WebSocket max reconnection attempts reached');
+                    }
+                } else {
+                    console.log('WebSocket closed - offline mode');
+                }
             };
             
             this.ws.onerror = (error) => {
-                console.error('WebSocket error in coininfo:', error);
+                // Only log first few errors to avoid spam
+                if ((this.wsReconnectAttempts || 0) <= 3) {
+                    console.warn('WebSocket connection error');
+                }
             };
         } catch (error) {
             console.error('Error initializing WebSocket in coininfo:', error);
@@ -1280,7 +1308,8 @@ class CoinInfoPage {
             const response = await fetch(`/api/coins/${this.currentCoin.id}/price-history?limit=100`, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`
-                }
+                },
+                signal: AbortSignal.timeout(10000) // 10 second timeout
             });
 
             if (response.ok) {
@@ -1292,11 +1321,15 @@ class CoinInfoPage {
                     this.updateChartWithGeneratedData(period);
                 }
             } else {
-                console.error('Failed to load price history:', response.status);
+                console.warn(`Price history failed (${response.status}) - using generated data`);
                 this.updateChartWithGeneratedData(period);
             }
         } catch (error) {
-            console.error('Error loading chart data:', error);
+            if (error.name === 'AbortError') {
+                console.warn('Chart data loading timeout - using generated data');
+            } else {
+                console.warn('Chart data loading error - using generated data:', error.message);
+            }
             this.updateChartWithGeneratedData(period);
         } finally {
             // Hide loading animation
@@ -1765,70 +1798,119 @@ class CoinInfoPage {
 
     // Синхронизация покупки с сервером
     async syncBuyTransaction(coinAmount, price, usdAmount) {
+        if (!navigator.onLine) {
+            console.log('Offline - buy transaction will sync when online');
+            return;
+        }
+        
         const user = JSON.parse(localStorage.getItem('user'));
         const token = localStorage.getItem('authToken');
         
+        if (!user || !token) {
+            console.error('Missing user data or auth token for buy sync');
+            return;
+        }
+        
         try {
-            const response = await fetch(`/api/users/${user.id}/portfolio/buy`, {
+            // Extract userId from JWT token for consistency
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const userId = payload.userId || user.id;
+            
+            const response = await fetch(`/api/users/${userId}/portfolio/buy`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    coinId: this.currentCoin.id,
-                    coinAmount: coinAmount,
-                    usdAmount: usdAmount,
-                    price: price,
                     coinSymbol: this.currentCoin.symbol,
                     coinName: this.currentCoin.name,
-                    coinLogo: this.currentCoin.logo || window.CryptoLogos.getCoinLogoBySymbol(this.currentCoin.symbol) || '/logos/default.svg'
-                })
+                    amount: coinAmount,
+                    price: price,
+                    fee: 0
+                }),
+                signal: AbortSignal.timeout(15000) // 15 second timeout
             });
             
             if (!response.ok) {
-                throw new Error('Ошибка синхронизации покупки');
+                const errorText = await response.text();
+                console.error(`Buy sync failed (${response.status}):`, errorText);
+                return;
             }
             
-            // Обновление баланса через BalanceSync
-            if (window.balanceSync) {
-                await window.balanceSync.syncBalance();
+            const result = await response.json();
+            if (result.success) {
+                console.log('Buy transaction synced successfully');
+                // Обновление баланса через BalanceSync
+                if (window.balanceSync) {
+                    await window.balanceSync.syncBalance();
+                }
             }
         } catch (error) {
-            console.error('Ошибка синхронизации покупки:', error);
+            if (error.name === 'AbortError') {
+                console.warn('Buy sync timeout');
+            } else {
+                console.error('Buy sync error:', error.message);
+            }
             // Не показываем ошибку пользователю, так как операция уже выполнена локально
         }
     }
 
     // Синхронизация продажи с сервером
     async syncSellTransaction(amount, price) {
+        if (!navigator.onLine) {
+            console.log('Offline - sell transaction will sync when online');
+            return;
+        }
+        
         const user = JSON.parse(localStorage.getItem('user'));
         const token = localStorage.getItem('authToken');
         
+        if (!user || !token) {
+            console.error('Missing user data or auth token for sell sync');
+            return;
+        }
+        
         try {
-            const response = await fetch(`/api/users/${user.id}/portfolio/sell`, {
+            // Extract userId from JWT token for consistency
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const userId = payload.userId || user.id;
+            
+            const response = await fetch(`/api/users/${userId}/portfolio/sell`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    coinId: this.currentCoin.id,
+                    coinSymbol: this.currentCoin.symbol,
                     amount: amount,
-                    price: price
-                })
+                    price: price,
+                    fee: 0
+                }),
+                signal: AbortSignal.timeout(15000) // 15 second timeout
             });
             
             if (!response.ok) {
-                throw new Error('Ошибка синхронизации продажи');
+                const errorText = await response.text();
+                console.error(`Sell sync failed (${response.status}):`, errorText);
+                return;
             }
             
-            // Обновление баланса через BalanceSync
-            if (window.balanceSync) {
-                await window.balanceSync.syncBalance();
+            const result = await response.json();
+            if (result.success) {
+                console.log('Sell transaction synced successfully');
+                // Обновление баланса через BalanceSync
+                if (window.balanceSync) {
+                    await window.balanceSync.syncBalance();
+                }
             }
         } catch (error) {
-            console.error('Ошибка синхронизации продажи:', error);
+            if (error.name === 'AbortError') {
+                console.warn('Sell sync timeout');
+            } else {
+                console.error('Sell sync error:', error.message);
+            }
             // Не показываем ошибку пользователю, так как операция уже выполнена локально
         }
     }
@@ -1857,6 +1939,36 @@ class CoinInfoPage {
                 this.calculateSellTotal();
             }
         }
+    }
+
+    // Настройка слушателей состояния сети
+    setupNetworkListeners() {
+        window.addEventListener('online', () => {
+            console.log('Network connection restored');
+            this.showToast('Соединение восстановлено', 'success');
+            
+            // Restart WebSocket connection
+            if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
+                this.wsReconnectAttempts = 0;
+                this.initializeWebSocket();
+            }
+            
+            // Trigger balance sync
+            if (this.balanceSync) {
+                this.balanceSync.syncBalance();
+            }
+        });
+        
+        window.addEventListener('offline', () => {
+            console.log('Network connection lost');
+            this.showToast('Нет соединения с интернетом', 'warning');
+            
+            // Close WebSocket connection
+            if (this.ws) {
+                this.ws.close();
+                this.ws = null;
+            }
+        });
     }
 }
 
