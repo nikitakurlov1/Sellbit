@@ -29,15 +29,6 @@
                 <button class="icon-btn back-btn" onclick="goBack()">
                     <i class="fas fa-arrow-left"></i>
                 </button>
-                <div class="coin-info">
-                    <div class="coin-icon">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="coin-details">
-                        <h1 class="coin-name">Загрузка...</h1>
-                        <span class="coin-symbol">...</span>
-                    </div>
-                </div>
             </div>
             <div class="header-right">
                 <button class="icon-btn">
@@ -51,48 +42,57 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Price Section -->
-            <section class="price-section">
-                <div class="price-card">
-                    <div class="current-price">
-                        <span class="price-amount" id="currentPrice">$0.00</span>
-                        <span class="price-change" id="priceChange">
-                            <i class="fas fa-minus"></i>
-                            $0.00 (0.00%)
-                        </span>
+            <!-- Unified Bitcoin Card -->
+            <section class="bitcoin-card">
+                <!-- Coin Info Header -->
+                <div class="coin-header">
+                    <div class="coin-info">
+                        <div class="coin-icon">
+                            <img src="/logos/bitcoin.svg" alt="BTC" class="coin-logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
+                        </div>
+                        <div class="coin-details">
+                            <h1 class="coin-name">Bitcoin</h1>
+                            <span class="coin-symbol">BTC</span>
+                        </div>
                     </div>
-                    <div class="price-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">24ч объем</span>
-                            <span class="stat-value">$0.0B</span>
+                </div>
+
+                <!-- Price Display -->
+                <div class="price-display">
+                    <div class="current-price">
+                        <span class="price-amount" id="currentPrice">4 588 689,15 €</span>
+                        <div class="price-change-container">
+                            <span class="price-change negative" id="priceChange">
+                                <i class="fas fa-arrow-down"></i>
+                                0,25%
+                            </span>
                         </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Рыночная кап.</span>
-                            <span class="stat-value">$0.0B</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Циркулирующее</span>
-                            <span class="stat-value">0</span>
-                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart Section -->
+                <div class="chart-section">
+                    <div class="chart-container">
+                        <canvas id="priceChart" width="680" height="332" style="display: block; box-sizing: border-box; height: 166px; width: 100%;"></canvas>
                     </div>
                 </div>
             </section>
 
-            <!-- Chart Section -->
-            <section class="chart-section">
-                <div class="chart-header">
-                    <h2>График цены</h2>
-                    <div class="time-controls">
-                        <button class="time-btn active" data-period="1D">1Д</button>
-                        <button class="time-btn" data-period="1W">1Н</button>
-                        <button class="time-btn" data-period="1M">1М</button>
-                        <button class="time-btn" data-period="3M">3М</button>
-                        <button class="time-btn" data-period="1Y">1Г</button>
-                        <button class="time-btn" data-period="ALL">Все</button>
-                    </div>
+            <!-- Balance Card -->
+            <section class="balance-card">
+                <div class="balance-header">
+                    <h3>Ваш баланс</h3>
                 </div>
-                <div class="chart-container">
-                    <canvas id="priceChart"></canvas>
+                <div class="balance-content">
+                    <div class="balance-item">
+                        <div class="balance-icon">
+                            <img src="/logos/bitcoin.svg" alt="BTC" class="balance-coin-logo" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
+                        </div>
+                        <div class="balance-details">
+                            <span class="balance-amount">0.00000000 BTC</span>
+                            <span class="balance-usd">$0.00</span>
+                        </div>
+                    </div>
                 </div>
             </section>
 
@@ -129,24 +129,6 @@
                 <div class="about-content">
                     <p id="aboutSectionDescription">Загрузка информации о монете...</p>
                     
-                    <div class="about-stats">
-                        <div class="about-stat">
-                            <span class="stat-label">Алгоритм</span>
-                            <span class="stat-value" id="aboutAlgorithm">Загрузка...</span>
-                        </div>
-                        <div class="about-stat">
-                            <span class="stat-label">Максимум</span>
-                            <span class="stat-value" id="aboutMaxSupply">Загрузка...</span>
-                        </div>
-                        <div class="about-stat">
-                            <span class="stat-label">Время блока</span>
-                            <span class="stat-value" id="aboutBlockTime">Загрузка...</span>
-                        </div>
-                        <div class="about-stat">
-                            <span class="stat-label">Создатель</span>
-                            <span class="stat-value" id="aboutCreator">Загрузка...</span>
-                        </div>
-                    </div>
                 </div>
             </section>
 

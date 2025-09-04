@@ -43,8 +43,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         // Инициализируем интерфейс
         initializeBalanceToggle();
         await loadBalance();
-        await loadTopAssets();
+        await loadAssets();
         await loadRecentTransactions();
+        
+        // Инициализируем состояние секций
+        initializeSections();
         
         // Автоматическое обновление баланса каждые 10 секунд
         setInterval(async () => {
@@ -189,7 +192,6 @@ function initializeNavigation() {
 
 async function loadDashboardData() {
     await loadBalance();
-    // loadTopAssets(); // Убираем, так как топ активы теперь статичные в HTML
     loadRecentTransactions();
     loadActiveStakes();
     updateStats();
@@ -258,192 +260,12 @@ async function loadBalance() {
     updateStats();
 }
 
-async function loadTopAssets() {
-    const container = document.getElementById('topAssets');
-    if (!container) return;
 
-    try {
-        const authToken = localStorage.getItem('authToken');
-        if (!authToken) {
-            // Если нет токена, показываем топ монет
-            showTopCoins(container);
-            return;
-        }
 
-        // Получаем данные о монетах
-        const response = await fetch('/api/coins/exchange', {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
-            }
-        });
 
-        if (response.ok) {
-            const result = await response.json();
-            if (result.success && result.coins) {
-                // Показываем топ-5 монет по рыночной капитализации
-                displayTopCoins(container, result.coins);
-            } else {
-                showTopCoins(container);
-            }
-        } else {
-            console.error('Ошибка API при загрузке монет:', response.status);
-            showTopCoins(container);
-        }
-    } catch (error) {
-        console.error('Ошибка загрузки монет:', error);
-        showTopCoins(container);
-    }
-}
 
-function displayTopCoins(container, coins) {
-    // Сортируем по рыночной капитализации и берем топ-5
-    const topCoins = coins
-        .sort((a, b) => (b.marketCap || 0) - (a.marketCap || 0))
-        .slice(0, 5);
-    
-    container.innerHTML = topCoins.map(coin => {
-        const priceChange = coin.priceChange || 0;
-        const changeClass = priceChange >= 0 ? 'positive' : 'negative';
-        const changeIcon = priceChange >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down';
-        
-        return `
-            <div class="asset-item" onclick="openAssetDetails('${coin.id}')">
-                <div class="asset-info">
-                    <div class="asset-icon">
-                        <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
-                    </div>
-                    <div class="asset-details">
-                        <div class="asset-name">${coin.name}</div>
-                        <div class="asset-symbol">${coin.symbol}</div>
-                        <div class="asset-balance">$${formatCurrency(coin.price)}</div>
-                        <div class="asset-change ${changeClass}">
-                            <i class="${changeIcon}"></i>
-                            ${priceChange >= 0 ? '+' : ''}${priceChange.toFixed(2)}%
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
 
-function showTopCoins(container) {
-    // Показываем топ-5 популярных монет
-    const topCoins = [
-        { id: 'bitcoin', name: 'Bitcoin', symbol: 'BTC', price: 43250, marketCap: 850000000000, priceChange: 2.5 },
-        { id: 'ethereum', name: 'Ethereum', symbol: 'ETH', price: 2650, marketCap: 320000000000, priceChange: -1.2 },
-        { id: 'binancecoin', name: 'BNB', symbol: 'BNB', price: 315, marketCap: 48000000000, priceChange: 0.8 },
-        { id: 'solana', name: 'Solana', symbol: 'SOL', price: 98, marketCap: 42000000000, priceChange: 5.2 },
-        { id: 'cardano', name: 'Cardano', symbol: 'ADA', price: 0.52, marketCap: 18000000000, priceChange: -0.5 }
-    ];
-    
-    container.innerHTML = topCoins.map(coin => {
-        return `
-            <div class="asset-item" onclick="openAssetDetails('${coin.id}')">
-                <div class="asset-info">
-                    <div class="asset-icon">
-                        <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
-                    </div>
-                    <div class="asset-details">
-                        <div class="asset-name">${coin.name}</div>
-                        <div class="asset-balance">$${coin.price.toLocaleString()}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
 
-function formatMarketCap(marketCap) {
-    if (marketCap >= 1000000000000) {
-        return (marketCap / 1000000000000).toFixed(1) + 'T';
-    } else if (marketCap >= 1000000000) {
-        return (marketCap / 1000000000).toFixed(1) + 'B';
-    } else if (marketCap >= 1000000) {
-        return (marketCap / 1000000).toFixed(1) + 'M';
-    } else {
-        return marketCap.toLocaleString();
-    }
-}
-
-function displayUserPortfolio(container, portfolio) {
-    // Сортируем по стоимости (самые дорогие первые)
-    const sortedPortfolio = portfolio.sort((a, b) => b.currentValue - a.currentValue);
-    
-    container.innerHTML = sortedPortfolio.slice(0, 5).map(asset => {
-        const iconClass = getCoinIcon(asset.coinSymbol);
-        const color = getCoinColor(asset.coinSymbol);
-        const profitLossClass = asset.profitLossPercent >= 0 ? 'positive' : 'negative';
-        const profitLossSign = asset.profitLossPercent >= 0 ? '+' : '';
-        
-        return `
-            <div class="asset-item" onclick="openAssetDetails('${asset.coinSymbol.toLowerCase()}')">
-                <div class="asset-info">
-                    <div class="asset-icon" style="background: ${color}">
-                        <i class="${iconClass}"></i>
-                    </div>
-                    <div class="asset-details">
-                        <div class="asset-name">${asset.coinName}</div>
-                        <div class="asset-balance">${asset.balance.toFixed(8)} ${asset.coinSymbol}</div>
-                    </div>
-                </div>
-                <div class="asset-values">
-                    <div class="asset-price">$${asset.currentValue.toLocaleString()}</div>
-                    <div class="asset-change ${profitLossClass}">
-                        ${profitLossSign}${asset.profitLossPercent.toFixed(2)}%
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function displayTopAssets(container, coins) {
-    // Определяем топ-5 самых популярных монет
-    const popularSymbols = ['BTC', 'ETH', 'BNB', 'SOL', 'ADA'];
-    
-    // Фильтруем и сортируем монеты по популярности
-    const popularCoins = coins
-        .filter(coin => popularSymbols.includes(coin.symbol))
-        .sort((a, b) => popularSymbols.indexOf(a.symbol) - popularSymbols.indexOf(b.symbol))
-        .slice(0, 5);
-    
-    container.innerHTML = popularCoins.map(coin => {
-        const iconClass = getCoinIcon(coin.symbol);
-        const color = getCoinColor(coin.symbol);
-        
-        return `
-            <div class="asset-item" onclick="openAssetDetails('${coin.id}')">
-                <div class="asset-info">
-                    <div class="asset-icon" style="background: ${color}">
-                        <i class="${iconClass}"></i>
-                    </div>
-                    <div class="asset-details">
-                        <div class="asset-name">${coin.name}</div>
-                        <div class="asset-balance">$${formatCurrency(coin.price)}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function showTopAssetsPlaceholder(container) {
-    container.innerHTML = `
-        <div class="empty-portfolio">
-            <div class="empty-icon">
-                <i class="fas fa-wallet"></i>
-            </div>
-            <div class="empty-text">
-                <h3>Портфель пуст</h3>
-                <p>У вас пока нет активов в портфеле</p>
-                <button class="text-btn" onclick="window.location.href='coins.html'">
-                    Начать торговлю
-                </button>
-            </div>
-        </div>
-    `;
-}
 
 function loadRecentTransactions() {
     const container = document.getElementById('recentTransactions');
@@ -757,10 +579,10 @@ function loadActiveStakes() {
             </div>
         `;
         
-        // Вставляем секцию после секции активов
-        const assetsSection = document.querySelector('.assets-section');
-        if (assetsSection) {
-            assetsSection.parentNode.insertBefore(stakesSection, assetsSection.nextSibling);
+        // Вставляем секцию после секции статистики
+        const statsSection = document.querySelector('.stats-section');
+        if (statsSection) {
+            statsSection.parentNode.insertBefore(stakesSection, statsSection.nextSibling);
         }
         
         // Запускаем таймеры для обновления времени
@@ -848,9 +670,6 @@ function getPeriodText(minutes) {
     }
 }
 
-function openAssetDetails(assetId) {
-    window.location.href = `coininfo.html?coin=${assetId}`;
-}
 
 function openDepositModal() {
     window.location.href = 'Dep.html';
@@ -1045,66 +864,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 });
 
-// Функции для работы с иконками и цветами монет
-function getCoinIcon(symbol) {
-    const iconMap = {
-        'BTC': 'fab fa-bitcoin',
-        'ETH': 'fab fa-ethereum',
-        'BNB': 'fas fa-coins',
-        'SOL': 'fas fa-bolt',
-        'ADA': 'fas fa-chart-line',
-        'XRP': 'fas fa-waves',
-        'DOT': 'fas fa-circle',
-        'DOGE': 'fas fa-dog',
-        'AVAX': 'fas fa-mountain',
-        'LINK': 'fas fa-link',
-        'MATIC': 'fas fa-polygon',
-        'UNI': 'fas fa-exchange-alt',
-        'LTC': 'fas fa-coins',
-        'XLM': 'fas fa-star',
-        'ATOM': 'fas fa-atom',
-        'XMR': 'fas fa-shield-alt',
-        'ALGO': 'fas fa-chart-bar',
-        'VET': 'fas fa-car',
-        'FIL': 'fas fa-hdd',
-        'ICP': 'fas fa-network-wired'
-    };
-    
-    return iconMap[symbol] || 'fas fa-coins';
-}
 
-function getCoinColor(symbol) {
-    const colorMap = {
-        'BTC': '#f7931a',
-        'ETH': '#627eea',
-        'BNB': '#f3ba2f',
-        'SOL': '#9945ff',
-        'ADA': '#0033ad',
-        'XRP': '#23292f',
-        'DOT': '#e6007a',
-        'DOGE': '#c2a633',
-        'AVAX': '#e84142',
-        'LINK': '#2a5ada',
-        'MATIC': '#8247e5',
-        'UNI': '#ff007a',
-        'LTC': '#a6a9aa',
-        'XLM': '#000000',
-        'ATOM': '#2e3148',
-        'XMR': '#ff6600',
-        'ALGO': '#000000',
-        'VET': '#15bdff',
-        'FIL': '#0090ff',
-        'ICP': '#29a4ff'
-    };
-    
-    return colorMap[symbol] || '#6c757d';
-}
-
-// Функция для открытия деталей актива
-function openAssetDetails(coinId) {
-    // Перенаправляем на страницу с деталями монеты
-    window.location.href = `coininfo.html?coin=${coinId}`;
-}
 
 function openTransactionDetails(type, amount, currency) {
     // Можно добавить модальное окно с деталями транзакции
@@ -1173,5 +933,222 @@ function ensureMonthlySnapshot(currentBalance) {
     // Обновляем снэпшот, если старше 30 дней
     if (daysSince > 30) {
         setMonthlySnapshot(currentBalance || 0);
+    }
+}
+
+// Assets Management Functions
+let currentAssetsView = 'top'; // 'top' or 'my'
+
+async function loadAssets() {
+    if (currentAssetsView === 'top') {
+        await loadTopAssets();
+    } else {
+        await loadMyAssets();
+    }
+}
+
+async function loadTopAssets() {
+    const container = document.getElementById('assetsList');
+    if (!container) return;
+
+    try {
+        // Получаем данные о монетах из публичного API
+        const response = await fetch('/api/coins/public', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data && Array.isArray(data.data)) {
+                // Сортируем по росту цены за день и берем топ-3
+                const topCoins = data.data
+                    .filter(coin => coin.priceChange !== undefined && coin.priceChange !== null)
+                    .sort((a, b) => (b.priceChange || 0) - (a.priceChange || 0))
+                    .slice(0, 3);
+                
+                displayTopAssets(container, topCoins);
+            } else {
+                showAssetsEmpty(container, 'Ошибка загрузки данных');
+            }
+        } else {
+            console.error('Ошибка API при загрузке топ активов:', response.status);
+            showAssetsEmpty(container, 'Ошибка загрузки данных');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки топ активов:', error);
+        showAssetsEmpty(container, 'Ошибка загрузки данных');
+    }
+}
+
+async function loadMyAssets() {
+    const container = document.getElementById('assetsList');
+    if (!container) return;
+
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showAssetsEmpty(container, 'Нет активов');
+            return;
+        }
+
+        // Получаем ID пользователя из JWT токена
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userId = payload.userId;
+
+        // Получаем портфель пользователя
+        const response = await fetch(`/api/users/${userId}/portfolio`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.portfolio && data.portfolio.length > 0) {
+                displayMyAssets(container, data.portfolio);
+            } else {
+                showAssetsEmpty(container, 'Нет активов');
+            }
+        } else if (response.status === 404) {
+            showAssetsEmpty(container, 'Нет активов');
+        } else {
+            console.error('Ошибка API при загрузке портфеля:', response.status);
+            showAssetsEmpty(container, 'Ошибка загрузки данных');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки моих активов:', error);
+        showAssetsEmpty(container, 'Ошибка загрузки данных');
+    }
+}
+
+function displayTopAssets(container, coins) {
+    if (!coins || coins.length === 0) {
+        showAssetsEmpty(container, 'Нет данных');
+        return;
+    }
+
+    container.innerHTML = coins.map(coin => {
+        const priceChange = coin.priceChange || 0;
+        const changeClass = priceChange >= 0 ? 'positive' : 'negative';
+        const changeIcon = priceChange >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        
+        return `
+            <div class="asset-item" onclick="openAssetDetails('${coin.id || coin.symbol}')">
+                <div class="asset-icon">
+                    <img src="${window.CryptoLogos ? window.CryptoLogos.getCoinLogoBySymbol(coin.symbol) : '/logos/default.svg'}" 
+                         alt="${coin.name}" 
+                         onerror="this.src='/logos/default.svg'">
+                </div>
+                <div class="asset-info">
+                    <div class="asset-name">${coin.name || coin.symbol}</div>
+                    <div class="asset-symbol">${coin.symbol}</div>
+                    <div class="asset-price">$${formatCurrency(coin.price || 0)}</div>
+                </div>
+                <div class="asset-change ${changeClass}">
+                    <i class="fas ${changeIcon}"></i>
+                    ${priceChange >= 0 ? '+' : ''}${priceChange.toFixed(2)}%
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function displayMyAssets(container, portfolio) {
+    if (!portfolio || portfolio.length === 0) {
+        showAssetsEmpty(container, 'Нет активов');
+        return;
+    }
+
+    container.innerHTML = portfolio.map(asset => {
+        const profitLoss = asset.profitLossPercent || 0;
+        const changeClass = profitLoss >= 0 ? 'positive' : 'negative';
+        const changeIcon = profitLoss >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+        
+        return `
+            <div class="asset-item" onclick="openAssetDetails('${asset.coinSymbol}')">
+                <div class="asset-icon">
+                    <img src="${window.CryptoLogos ? window.CryptoLogos.getCoinLogoBySymbol(asset.coinSymbol) : '/logos/default.svg'}" 
+                         alt="${asset.coinName}" 
+                         onerror="this.src='/logos/default.svg'">
+                </div>
+                <div class="asset-info">
+                    <div class="asset-name">${asset.coinName || asset.coinSymbol}</div>
+                    <div class="asset-symbol">${asset.coinSymbol}</div>
+                    <div class="asset-price">${asset.balance ? asset.balance.toFixed(8) : '0'} ${asset.coinSymbol}</div>
+                </div>
+                <div class="asset-change ${changeClass}">
+                    <i class="fas ${changeIcon}"></i>
+                    ${profitLoss >= 0 ? '+' : ''}${profitLoss.toFixed(2)}%
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function showAssetsEmpty(container, message) {
+    container.innerHTML = `
+        <div class="assets-empty">
+            <i class="fas fa-wallet"></i>
+            <h3>${message}</h3>
+            <p>${message === 'Нет активов' ? 'У вас пока нет активов в портфеле' : 'Попробуйте обновить страницу'}</p>
+            ${message === 'Нет активов' ? '<button class="text-btn" onclick="window.location.href=\'coins.html\'">Начать торговлю</button>' : ''}
+        </div>
+    `;
+}
+
+function switchAssetsView(view) {
+    currentAssetsView = view;
+    
+    // Обновляем активные кнопки
+    const topBtn = document.getElementById('topAssetsBtn');
+    const myBtn = document.getElementById('myAssetsBtn');
+    
+    if (topBtn && myBtn) {
+        topBtn.classList.toggle('active', view === 'top');
+        myBtn.classList.toggle('active', view === 'my');
+    }
+    
+    // Загружаем соответствующие данные
+    loadAssets();
+}
+
+function openAssetDetails(assetId) {
+    window.location.href = `coininfo.html?coin=${assetId}`;
+}
+
+// Initialize sections state
+function initializeSections() {
+    // По умолчанию секция транзакций свернута
+    const transactionsList = document.getElementById('recentTransactions');
+    const toggleIcon = document.getElementById('transactionsToggleIcon');
+    
+    if (transactionsList && toggleIcon) {
+        transactionsList.classList.add('collapsed');
+        toggleIcon.classList.remove('rotated');
+    }
+}
+
+// Transactions Toggle Function
+function toggleTransactions() {
+    const transactionsList = document.getElementById('recentTransactions');
+    const toggleIcon = document.getElementById('transactionsToggleIcon');
+    
+    if (transactionsList && toggleIcon) {
+        const isCollapsed = transactionsList.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            // Разворачиваем - стрелочка вверх
+            transactionsList.classList.remove('collapsed');
+            toggleIcon.classList.add('rotated');
+        } else {
+            // Сворачиваем - стрелочка вниз
+            transactionsList.classList.add('collapsed');
+            toggleIcon.classList.remove('rotated');
+        }
     }
 }

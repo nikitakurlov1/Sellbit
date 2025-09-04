@@ -32,9 +32,6 @@
                 <h1 class="app-title">SellBit</h1>
             </div>
             <div class="header-right">
-                <button class="icon-btn" onclick="window.location.href='notification-demo.html'" title="Демо уведомлений">
-                    <i class="fas fa-bell"></i>
-                </button>
                 <div class="user-avatar" id="userAvatar">U</div>
             </div>
         </header>
@@ -46,15 +43,8 @@
                 <div class="balance-card">
                     <div class="balance-header">
                         <span class="balance-label">Общий баланс</span>
-                        <button class="icon-btn eye-btn">
-                            <i class="fas fa-eye"></i>
-                        </button>
                     </div>
                     <div class="balance-amount" id="totalBalance">$0.00</div>
-                    <div class="balance-change" id="balanceChange">
-                        <i class="fas fa-minus"></i>
-                        $0.00 (0.00%)
-                    </div>
                 </div>
 
                 <!-- Action Buttons -->
@@ -92,22 +82,31 @@
                 </div>
             </section>
 
-            <!-- Top Assets -->
+            <!-- Assets Section with Toggle -->
             <section class="assets-section">
                 <div class="section-header">
-                    <h2>Топ активов</h2>
-                    <button class="text-btn" onclick="window.location.href='coins.html'">Все активы</button>
+                    <div class="assets-toggle">
+                        <button class="toggle-btn active" id="topAssetsBtn" onclick="switchAssetsView('top')">
+                            Топ активов
+                        </button>
+                        <button class="toggle-btn" id="myAssetsBtn" onclick="switchAssetsView('my')">
+                            Мои активы
+                        </button>
+                    </div>
                 </div>
-                <div class="assets-list" id="topAssets">
+                <div class="assets-list" id="assetsList">
                     <!-- Assets will be loaded dynamically -->
                 </div>
             </section>
 
             <!-- Recent Transactions -->
             <section class="transactions-section">
-                <div class="section-header">
+                <div class="section-header collapsible" onclick="toggleTransactions()">
                     <h2>История операций</h2>
-                    <button class="text-btn" onclick="scrollToTransactions()">Обновить</button>
+                    <div class="header-actions">
+                        <button class="text-btn" onclick="event.stopPropagation(); scrollToTransactions()">Обновить</button>
+                        <i class="fas fa-chevron-down toggle-icon" id="transactionsToggleIcon"></i>
+                    </div>
                 </div>
                 <div class="transactions-list" id="recentTransactions">
                     <!-- Transactions will be loaded dynamically -->

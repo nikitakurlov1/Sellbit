@@ -68,14 +68,15 @@ body {
     background: transparent;
     border: none;
     color: #8E8E93;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
 }
 
 .icon-btn:hover {
@@ -171,12 +172,13 @@ body {
 
 .coins-grid {
     display: flex;
-    gap: 12px;
+    gap: 16px;
     margin-bottom: 32px;
-    padding: 0 4px;
+    padding: 0 8px 16px 8px;
     overflow-x: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    scroll-behavior: smooth;
 }
 
 .coins-grid::-webkit-scrollbar {
@@ -186,17 +188,27 @@ body {
 .coin-card {
     background: #ffffff;
     border: 1px solid #E5E5E7;
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 16px;
+    padding: 16px;
     cursor: pointer;
-    min-width: 140px;
+    min-width: 150px;
     flex-shrink: 0;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .coin-card:hover {
     background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: #4A88FF;
+}
+
+.coin-card:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .coin-header {
@@ -207,8 +219,8 @@ body {
 }
 
 .coin-icon {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -218,14 +230,17 @@ body {
     flex-shrink: 0;
     overflow: hidden;
     border: none;
+    background: #F2F2F7;
+    position: relative;
 }
 
 /* Стили для SVG логотипов */
 .coin-icon img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 50%;
+    padding: 2px;
 }
 
 .coin-info {
@@ -324,9 +339,18 @@ body {
     align-items: center;
     gap: 16px;
     cursor: pointer;
-    /* Убрали transition */
+    transition: all 0.2s ease;
     border-bottom: 1px solid #E5E5E7;
     position: relative;
+    min-height: 80px;
+}
+
+.coin-item:hover {
+    background: #f8f9fa;
+}
+
+.coin-item:active {
+    background: #F2F2F7;
 }
 
 .coin-item:last-child {
@@ -352,8 +376,8 @@ body {
 /* Убрали hover эффекты для стрелки */
 
 .coin-item .coin-icon {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     font-size: 14px;
     border-radius: 50%;
     display: flex;
@@ -363,15 +387,18 @@ body {
     flex-shrink: 0;
     overflow: hidden;
     border: none;
-    /* Убрали анимации */
+    background: #F2F2F7;
+    position: relative;
+    transition: all 0.2s ease;
 }
 
 /* Стили для SVG логотипов в списке */
 .coin-item .coin-icon img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     border-radius: 50%;
+    padding: 3px;
 }
 
 .coin-item .coin-info {
@@ -445,18 +472,20 @@ body {
     background: transparent;
     border: none;
     color: #8E8E93;
-    padding: 8px 8px;
-    border-radius: 8px;
+    padding: 12px 8px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     font-size: 12px;
     font-weight: 500;
     flex: 1;
     max-width: 70px;
+    min-height: 60px;
+    touch-action: manipulation;
 }
 
 .nav-btn:hover {

@@ -93,8 +93,20 @@ class DataSync {
             const token = localStorage.getItem('authToken');
             if (!token) return;
             
-            // Получаем ID пользователя из токена или localStorage
-            const userId = localStorage.getItem('userId') || 'current';
+            // Получаем ID пользователя из JWT токена
+            let userId;
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                userId = payload.userId;
+            } catch (error) {
+                console.error('Ошибка декодирования JWT токена:', error);
+                return;
+            }
+            
+            if (!userId) {
+                console.warn('Не удалось получить userId из токена');
+                return;
+            }
             
             const response = await fetch(`/api/users/${userId}/balance`, {
                 method: 'GET',
@@ -154,18 +166,25 @@ class DataSync {
             
             if (response.ok) {
                 const data = await response.json();
-                if (data.success) {
-                    // Обновляем цены в UI
-                    this.updatePricesUI(data.data);
+                if (data.success && data.data && Array.isArray(data.data)) {
+                    // Преобразуем массив монет в нужную структуру
+                    const transformedData = this.transformCoinsData(data.data);
+                    this.updatePricesUI(transformedData);
                     console.log('📈 Цены криптовалют обновлены');
                 } else {
                     console.warn('Сервер вернул ошибку при получении цен:', data.errors || data.error);
+                    // Если нет данных, создаем пустую структуру для предотвращения ошибок
+                    this.updatePricesUI({ prices: {}, topAssets: [] });
                 }
             } else {
                 console.warn('Ошибка получения цен криптовалют:', response.status, response.statusText);
+                // При ошибке API создаем пустую структуру
+                this.updatePricesUI({ prices: {}, topAssets: [] });
             }
         } catch (error) {
             console.error('Ошибка синхронизации цен:', error);
+            // При любой ошибке создаем пустую структуру для предотвращения дальнейших ошибок
+            this.updatePricesUI({ prices: {}, topAssets: [] });
         }
     }
     
@@ -175,8 +194,20 @@ class DataSync {
             const token = localStorage.getItem('authToken');
             if (!token) return;
             
-            // Получаем ID пользователя из токена или localStorage
-            const userId = localStorage.getItem('userId') || 'current';
+            // Получаем ID пользователя из JWT токена
+            let userId;
+            try {
+                const payload = JSON.parse(atob(token.split('.')[1]));
+                userId = payload.userId;
+            } catch (error) {
+                console.error('Ошибка декодирования JWT токена:', error);
+                return;
+            }
+            
+            if (!userId) {
+                console.warn('Не удалось получить userId из токена');
+                return;
+            }
             
             const response = await fetch(`/api/users/${userId}/portfolio/transactions`, {
                 method: 'GET',
@@ -189,11 +220,11 @@ class DataSync {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    // Обновляем историю в UI
-                    this.updateTransactionHistoryUI(data.data);
+                    // Обновляем историю в UI - используем правильную структуру данных
+                    this.updateTransactionHistoryUI({ transactions: data.transactions });
                     console.log('📋 История транзакций обновлена');
                 } else {
-                    console.warn('Сервер вернул ошибку при получении истории транзакций:', data.error);
+                    console.warn('Сервер вернул ошибку при получении истории транзакций:', data.errors || data.error);
                 }
             } else if (response.status === 401) {
                 console.log('Токен недействителен, требуется повторная авторизация');
@@ -291,8 +322,48 @@ class DataSync {
         }
     }
     
+    // Преобразование данных монет в нужную структуру
+    transformCoinsData(coinsArray) {
+        if (!Array.isArray(coinsArray)) {
+            return { prices: {}, topAssets: [] };
+        }
+        
+        // Создаем объект цен для быстрого доступа
+        const prices = {};
+        const topAssets = [];
+        
+        coinsArray.forEach(coin => {
+            if (coin && coin.symbol) {
+                // Добавляем в объект цен
+                prices[coin.symbol] = {
+                    current: coin.price || 0,
+                    change: coin.priceChange || 0,
+                    changePercent: coin.priceChange || 0
+                };
+                
+                // Добавляем в топ активы (первые 5 по рыночной капитализации)
+                if (topAssets.length < 5) {
+                    topAssets.push({
+                        symbol: coin.symbol,
+                        name: coin.name || coin.symbol,
+                        price: coin.price || 0,
+                        change: coin.priceChange || 0
+                    });
+                }
+            }
+        });
+        
+        return { prices, topAssets };
+    }
+    
     // Обновление UI цен
     updatePricesUI(pricesData) {
+        // Проверяем, что pricesData существует
+        if (!pricesData) {
+            console.warn('pricesData is undefined or null');
+            return;
+        }
+        
         // Обновляем список криптовалют
         const topAssets = document.getElementById('topAssets');
         if (topAssets && pricesData.topAssets) {
@@ -300,7 +371,11 @@ class DataSync {
         }
         
         // Обновляем цены в других местах
-        this.updateAllPrices(pricesData.prices);
+        if (pricesData.prices) {
+            this.updateAllPrices(pricesData.prices);
+        } else {
+            console.warn('pricesData.prices is undefined or null');
+        }
     }
     
     // Обновление списка топ активов
@@ -326,15 +401,28 @@ class DataSync {
     
     // Обновление всех цен
     updateAllPrices(prices) {
+        // Проверяем, что prices существует и является объектом
+        if (!prices || typeof prices !== 'object') {
+            console.warn('prices is undefined, null, or not an object:', prices);
+            return;
+        }
+        
         // Обновляем цены во всех местах приложения
         Object.keys(prices).forEach(symbol => {
             const price = prices[symbol];
+            
+            // Проверяем, что price существует и имеет нужную структуру
+            if (!price || typeof price !== 'object') {
+                console.warn(`Price data for ${symbol} is invalid:`, price);
+                return;
+            }
+            
             const elements = document.querySelectorAll(`[data-crypto="${symbol}"]`);
             
             elements.forEach(element => {
-                if (element.dataset.priceType === 'current') {
+                if (element.dataset.priceType === 'current' && price.current !== undefined) {
                     element.textContent = `$${price.current.toFixed(2)}`;
-                } else if (element.dataset.priceType === 'change') {
+                } else if (element.dataset.priceType === 'change' && price.change !== undefined) {
                     const change = price.change;
                     element.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(2)}%`;
                     element.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;

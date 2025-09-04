@@ -108,7 +108,7 @@ function loadPopularCoins() {
             <div class="coin-card" onclick="openCoinDetails('${coin.id}')">
                 <div class="coin-header">
                     <div class="coin-icon">
-                        <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
+                        <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" onerror="this.src='/logos/default.svg'">
                     </div>
                     <div class="coin-info">
                         <div class="coin-name">${coin.name}</div>
@@ -144,7 +144,7 @@ function loadAllCoins() {
         return `
             <div class="coin-item" onclick="openCoinDetails('${coin.id}')">
                 <div class="coin-icon">
-                    <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
+                    <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" onerror="this.src='/logos/default.svg'">
                 </div>
                 <div class="coin-info">
                     <div class="coin-name">${coin.name}</div>
@@ -231,7 +231,7 @@ function updateCoinsDisplay(filteredCoins) {
         return `
             <div class="coin-item" onclick="openCoinDetails('${coin.id}')">
                 <div class="coin-icon">
-                    <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
+                    <img src="${window.CryptoLogos.getCoinLogoBySymbol(coin.symbol)}" alt="${coin.symbol}" class="coin-logo" onerror="this.src='/logos/default.svg'">
                 </div>
                 <div class="coin-info">
                     <div class="coin-name">${coin.name}</div>
