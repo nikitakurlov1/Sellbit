@@ -1863,11 +1863,55 @@ class CoinInfoPage {
 // Initialize the page
 document.addEventListener('DOMContentLoaded', () => {
     window.coinInfoPage = new CoinInfoPage();
+    
+    // Добавляем обработчик для кнопки "Назад" браузера
+    window.addEventListener('popstate', (event) => {
+        console.log('popstate event triggered');
+        // Если пользователь нажал кнопку "Назад" браузера, 
+        // мы можем обработать это событие здесь
+    });
+    
+    // Добавляем обработчик для предотвращения случайного выхода
+    window.addEventListener('beforeunload', (event) => {
+        // Это событие срабатывает при попытке покинуть страницу
+        // Но мы не будем показывать диалог подтверждения, 
+        // так как это может раздражать пользователей
+        console.log('beforeunload event triggered');
+    });
 });
 
 // Global functions for HTML onclick handlers
 function goBack() {
-    window.history.back();
+    console.log('goBack() вызвана');
+    console.log('document.referrer:', document.referrer);
+    console.log('window.location.href:', window.location.href);
+    console.log('window.history.length:', window.history.length);
+    
+    try {
+        // Проверяем, есть ли referrer (страница, с которой пришел пользователь)
+        if (document.referrer && document.referrer !== window.location.href) {
+            console.log('Возвращаемся назад по referrer');
+            // Если есть referrer, возвращаемся назад
+            window.history.back();
+        } else if (window.history.length > 1) {
+            console.log('Возвращаемся назад по истории браузера');
+            // Если нет referrer, но есть история браузера
+            window.history.back();
+        } else {
+            console.log('Перенаправляем на главную страницу');
+            // Если нет ни referrer, ни истории, перенаправляем на главную страницу
+            // Но сначала проверим, может быть пользователь пришел со страницы монет
+            if (document.referrer && document.referrer.includes('coins.html')) {
+                window.location.href = '/coins.html';
+            } else {
+                window.location.href = '/home.html';
+            }
+        }
+    } catch (error) {
+        console.error('Ошибка при навигации назад:', error);
+        // В случае ошибки, перенаправляем на главную страницу
+        window.location.href = '/home.html';
+    }
 }
 
 function openStakeModal(direction = 'up') {
