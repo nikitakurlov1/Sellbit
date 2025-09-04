@@ -73,6 +73,26 @@ class CoinInfoPage {
             });
         }
 
+        // Buy form submission
+        const buyForm = document.getElementById('buyForm');
+        if (buyForm) {
+            buyForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const usdAmount = parseFloat(document.getElementById('buyAmountUSD').value);
+                this.handleBuy(usdAmount);
+            });
+        }
+
+        // Sell form submission
+        const sellForm = document.getElementById('sellForm');
+        if (sellForm) {
+            sellForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const amount = parseFloat(document.getElementById('sellAmount').value);
+                this.handleSell(amount);
+            });
+        }
+
         // Stake amount input
         const stakeAmount = document.getElementById('stakeAmount');
         if (stakeAmount) {
@@ -1014,6 +1034,9 @@ class CoinInfoPage {
                         
                         // Update chart if needed
                         this.updateChartWithRealTimeData(message.data.price);
+                        
+                        // Update trading modals if open
+                        this.updateTradingModals();
                     }
                 } catch (error) {
                     console.error('Error parsing WebSocket message:', error);
@@ -1490,6 +1513,344 @@ class CoinInfoPage {
 
         this.showToast(`График обновлен: ${period}`, 'info');
     }
+
+    // ===== TRADING METHODS =====
+    
+    // Открытие модала покупки
+    openBuyModal() {
+        const modal = document.getElementById('buyModal');
+        const user = JSON.parse(localStorage.getItem('user'));
+        
+        if (!user) {
+            this.showToast('Пользователь не авторизован', 'error');
+            return;
+        }
+        
+        // Обновление отображения
+        document.getElementById('buyCoinName').textContent = this.currentCoin.name;
+        document.getElementById('buyAccountBalance').textContent = `$${user.balance.toFixed(2)}`;
+        document.getElementById('buyCurrentPrice').textContent = `$${this.currentPrice.toFixed(2)}`;
+        document.getElementById('buyPricePerCoin').textContent = `$${this.currentPrice.toFixed(2)}`;
+        
+        // Сброс формы
+        document.getElementById('buyAmountUSD').value = '';
+        document.getElementById('buyCoinAmount').textContent = '0.00000000';
+        
+        modal.style.display = 'block';
+        
+        // Обработчик изменения суммы в USD
+        const buyAmountInput = document.getElementById('buyAmountUSD');
+        buyAmountInput.removeEventListener('input', this.calculateBuyFromUSD);
+        buyAmountInput.addEventListener('input', this.calculateBuyFromUSD.bind(this));
+    }
+
+    // Открытие модала продажи
+    openSellModal() {
+        const modal = document.getElementById('sellModal');
+        const portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+        const coinInPortfolio = portfolio.find(item => item.coinId === this.currentCoin.id);
+        
+        if (!coinInPortfolio || coinInPortfolio.amount <= 0) {
+            this.showToast('У вас нет этой монеты в портфеле', 'error');
+            return;
+        }
+        
+        // Обновление отображения
+        document.getElementById('sellCoinName').textContent = this.currentCoin.name;
+        document.getElementById('sellPortfolioBalance').textContent = `${coinInPortfolio.amount.toFixed(8)} ${this.currentCoin.symbol}`;
+        document.getElementById('sellCurrentPrice').textContent = `$${this.currentPrice.toFixed(2)}`;
+        
+        // Сброс формы
+        document.getElementById('sellAmount').value = '';
+        document.getElementById('sellTotal').textContent = '$0.00';
+        
+        modal.style.display = 'block';
+        
+        // Обработчик изменения количества
+        const sellAmountInput = document.getElementById('sellAmount');
+        sellAmountInput.removeEventListener('input', this.calculateSellTotal);
+        sellAmountInput.addEventListener('input', this.calculateSellTotal.bind(this));
+    }
+
+    // Расчет количества монет от суммы в USD
+    calculateBuyFromUSD() {
+        const usdAmount = parseFloat(document.getElementById('buyAmountUSD').value) || 0;
+        const coinAmount = usdAmount / this.currentPrice;
+        
+        // Обновляем отображение количества монет
+        document.getElementById('buyCoinAmount').textContent = coinAmount.toFixed(8);
+        
+        // Обновляем цену за монету (может измениться в реальном времени)
+        document.getElementById('buyPricePerCoin').textContent = `$${this.currentPrice.toFixed(2)}`;
+    }
+
+    // Расчет общей суммы продажи
+    calculateSellTotal() {
+        const amount = parseFloat(document.getElementById('sellAmount').value) || 0;
+        const total = amount * this.currentPrice;
+        document.getElementById('sellTotal').textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Обработка покупки
+    async handleBuy(usdAmount) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const coinAmount = usdAmount / this.currentPrice;
+        
+        // Валидация
+        if (usdAmount > user.balance) {
+            this.showToast('Недостаточно средств на балансе', 'error');
+            return;
+        }
+        
+        if (usdAmount < 0.01) {
+            this.showToast('Минимальная сумма покупки: $0.01', 'error');
+            return;
+        }
+        
+        if (coinAmount <= 0) {
+            this.showToast('Введите корректную сумму', 'error');
+            return;
+        }
+        
+        try {
+            // Показываем спиннер
+            const submitBtn = document.getElementById('buySubmitBtn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = 'Покупка...';
+            submitBtn.disabled = true;
+            
+            // Списание с баланса
+            user.balance -= usdAmount;
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            // Добавление в портфель
+            this.addToPortfolio(this.currentCoin.id, coinAmount, this.currentPrice);
+            
+            // Добавление в историю транзакций
+            this.addTransactionToHistory('buy', this.currentCoin.name, usdAmount, coinAmount);
+            
+            // Синхронизация с сервером
+            await this.syncBuyTransaction(coinAmount, this.currentPrice, usdAmount);
+            
+            // Обновление отображения
+            this.updateBalanceDisplay();
+            this.showToast(`Куплено ${coinAmount.toFixed(8)} ${this.currentCoin.symbol} за $${usdAmount.toFixed(2)}`, 'success');
+            
+            // Закрытие модала
+            closeModal('buyModal');
+            
+        } catch (error) {
+            console.error('Ошибка при покупке:', error);
+            this.showToast('Ошибка при покупке', 'error');
+        } finally {
+            // Восстанавливаем кнопку
+            const submitBtn = document.getElementById('buySubmitBtn');
+            submitBtn.textContent = 'Купить';
+            submitBtn.disabled = false;
+        }
+    }
+
+    // Обработка продажи
+    async handleSell(amount) {
+        const portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+        const coinInPortfolio = portfolio.find(item => item.coinId === this.currentCoin.id);
+        const user = JSON.parse(localStorage.getItem('user'));
+        
+        // Валидация
+        if (!coinInPortfolio || coinInPortfolio.amount < amount) {
+            this.showToast('Недостаточно монет в портфеле', 'error');
+            return;
+        }
+        
+        if (amount <= 0) {
+            this.showToast('Введите корректное количество', 'error');
+            return;
+        }
+        
+        try {
+            const totalValue = amount * this.currentPrice;
+            
+            // Добавление на баланс
+            user.balance += totalValue;
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            // Удаление из портфеля
+            this.removeFromPortfolio(this.currentCoin.id, amount);
+            
+            // Добавление в историю транзакций
+            this.addTransactionToHistory('sell', this.currentCoin.name, totalValue, amount);
+            
+            // Синхронизация с сервером
+            await this.syncSellTransaction(amount, this.currentPrice);
+            
+            // Обновление отображения
+            this.updateBalanceDisplay();
+            this.showToast(`Продано ${amount.toFixed(8)} ${this.currentCoin.symbol}`, 'success');
+            
+            // Закрытие модала
+            closeModal('sellModal');
+            
+        } catch (error) {
+            console.error('Ошибка при продаже:', error);
+            this.showToast('Ошибка при продаже', 'error');
+        }
+    }
+
+    // Добавление в портфель
+    addToPortfolio(coinId, amount, price) {
+        let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+        const existingCoin = portfolio.find(item => item.coinId === coinId);
+        
+        if (existingCoin) {
+            // Пересчет средней цены
+            const totalAmount = existingCoin.amount + amount;
+            const totalCost = (existingCoin.amount * existingCoin.avgPrice) + (amount * price);
+            existingCoin.avgPrice = totalCost / totalAmount;
+            existingCoin.amount = totalAmount;
+        } else {
+            // Новая монета в портфеле
+            portfolio.push({
+                coinId: coinId,
+                amount: amount,
+                avgPrice: price,
+                symbol: this.currentCoin.symbol,
+                name: this.currentCoin.name,
+                logo: this.currentCoin.logo || window.CryptoLogos.getCoinLogoBySymbol(this.currentCoin.symbol) || '/logos/default.svg'
+            });
+        }
+        
+        localStorage.setItem('portfolio', JSON.stringify(portfolio));
+    }
+
+    // Удаление из портфеля
+    removeFromPortfolio(coinId, amount) {
+        let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+        const coinIndex = portfolio.findIndex(item => item.coinId === coinId);
+        
+        if (coinIndex !== -1) {
+            portfolio[coinIndex].amount -= amount;
+            
+            // Удаление если количество стало 0
+            if (portfolio[coinIndex].amount <= 0) {
+                portfolio.splice(coinIndex, 1);
+            }
+        }
+        
+        localStorage.setItem('portfolio', JSON.stringify(portfolio));
+    }
+
+    // Добавление транзакции в историю
+    addTransactionToHistory(type, coinName, amount, coinAmount) {
+        const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        const transaction = {
+            id: Date.now() + Math.random(),
+            type: type,
+            coinName: coinName,
+            amount: type === 'buy' ? -amount : amount,
+            coinAmount: coinAmount,
+            date: new Date().toISOString(),
+            price: this.currentPrice
+        };
+        
+        transactions.unshift(transaction);
+        localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    // Синхронизация покупки с сервером
+    async syncBuyTransaction(coinAmount, price, usdAmount) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('authToken');
+        
+        try {
+            const response = await fetch(`/api/users/${user.id}/portfolio/buy`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    coinId: this.currentCoin.id,
+                    coinAmount: coinAmount,
+                    usdAmount: usdAmount,
+                    price: price,
+                    coinSymbol: this.currentCoin.symbol,
+                    coinName: this.currentCoin.name,
+                    coinLogo: this.currentCoin.logo || window.CryptoLogos.getCoinLogoBySymbol(this.currentCoin.symbol) || '/logos/default.svg'
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Ошибка синхронизации покупки');
+            }
+            
+            // Обновление баланса через BalanceSync
+            if (window.balanceSync) {
+                await window.balanceSync.syncBalance();
+            }
+        } catch (error) {
+            console.error('Ошибка синхронизации покупки:', error);
+            // Не показываем ошибку пользователю, так как операция уже выполнена локально
+        }
+    }
+
+    // Синхронизация продажи с сервером
+    async syncSellTransaction(amount, price) {
+        const user = JSON.parse(localStorage.getItem('user'));
+        const token = localStorage.getItem('authToken');
+        
+        try {
+            const response = await fetch(`/api/users/${user.id}/portfolio/sell`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    coinId: this.currentCoin.id,
+                    amount: amount,
+                    price: price
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Ошибка синхронизации продажи');
+            }
+            
+            // Обновление баланса через BalanceSync
+            if (window.balanceSync) {
+                await window.balanceSync.syncBalance();
+            }
+        } catch (error) {
+            console.error('Ошибка синхронизации продажи:', error);
+            // Не показываем ошибку пользователю, так как операция уже выполнена локально
+        }
+    }
+
+    // Обновление модалов торговли при изменении цены
+    updateTradingModals() {
+        // Обновление модала покупки
+        const buyModal = document.getElementById('buyModal');
+        if (buyModal && buyModal.style.display !== 'none') {
+            document.getElementById('buyCurrentPrice').textContent = `$${this.currentPrice.toFixed(2)}`;
+            document.getElementById('buyPricePerCoin').textContent = `$${this.currentPrice.toFixed(2)}`;
+            // Пересчет количества монет если введена сумма в USD
+            const buyAmountUSD = document.getElementById('buyAmountUSD').value;
+            if (buyAmountUSD) {
+                this.calculateBuyFromUSD();
+            }
+        }
+
+        // Обновление модала продажи
+        const sellModal = document.getElementById('sellModal');
+        if (sellModal && sellModal.style.display !== 'none') {
+            document.getElementById('sellCurrentPrice').textContent = `$${this.currentPrice.toFixed(2)}`;
+            // Пересчет общей суммы если введено количество
+            const sellAmount = document.getElementById('sellAmount').value;
+            if (sellAmount) {
+                this.calculateSellTotal();
+            }
+        }
+    }
 }
 
 // Initialize the page
@@ -1514,6 +1875,18 @@ function openActiveStakesModal() {
     }
 }
 
+function openBuyModal() {
+    if (window.coinInfoPage) {
+        window.coinInfoPage.openBuyModal();
+    }
+}
+
+function openSellModal() {
+    if (window.coinInfoPage) {
+        window.coinInfoPage.openSellModal();
+    }
+}
+
 function selectDirection(direction) {
     if (window.coinInfoPage) {
         window.coinInfoPage.selectDirection(direction);
@@ -1522,4 +1895,16 @@ function selectDirection(direction) {
 
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
+}
+
+function setMaxBuyAmount() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (user && user.balance > 0) {
+        const buyAmountUSD = document.getElementById('buyAmountUSD');
+        if (buyAmountUSD) {
+            buyAmountUSD.value = user.balance.toFixed(2);
+            // Триггерим событие input для пересчета
+            buyAmountUSD.dispatchEvent(new Event('input'));
+        }
+    }
 }

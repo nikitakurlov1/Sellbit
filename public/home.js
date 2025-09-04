@@ -1020,41 +1020,51 @@ async function loadMyAssets() {
     if (!container) return;
 
     try {
-        const token = localStorage.getItem('authToken');
-        if (!token) {
+        // Получаем портфель из localStorage
+        const portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+        
+        if (portfolio.length === 0) {
             showAssetsEmpty(container, 'Нет активов');
             return;
         }
 
-        // Получаем ID пользователя из JWT токена
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const userId = payload.userId;
-
-        // Получаем портфель пользователя
-        const response = await fetch(`/api/users/${userId}/portfolio`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.portfolio && data.portfolio.length > 0) {
-                displayMyAssets(container, data.portfolio);
-            } else {
-                showAssetsEmpty(container, 'Нет активов');
-            }
-        } else if (response.status === 404) {
-            showAssetsEmpty(container, 'Нет активов');
+        // Получаем актуальные цены монет
+        const response = await fetch('/api/coins/public');
+        const data = await response.json();
+        
+        if (data.success && data.data) {
+            const coinsData = data.data;
+            
+            // Объединяем портфель с актуальными ценами
+            const portfolioWithPrices = portfolio.map(portfolioItem => {
+                const coinData = coinsData.find(coin => coin.id === portfolioItem.coinId);
+                
+                // Определяем логотип с приоритетом: сохраненный в портфеле > из API > CryptoLogos > default
+                let logo = portfolioItem.logo || '/logos/default.svg';
+                if (coinData && coinData.logo) {
+                    logo = coinData.logo;
+                } else if (window.CryptoLogos) {
+                    logo = window.CryptoLogos.getCoinLogoBySymbol(portfolioItem.symbol) || '/logos/default.svg';
+                }
+                
+                return {
+                    ...portfolioItem,
+                    currentPrice: coinData ? coinData.price : 0,
+                    priceChange: coinData ? coinData.priceChange : 0,
+                    priceChangePercent: coinData ? coinData.priceChangePercent : 0,
+                    logo: logo
+                };
+            });
+            
+            displayMyAssets(container, portfolioWithPrices);
         } else {
-            console.error('Ошибка API при загрузке портфеля:', response.status);
-            showAssetsEmpty(container, 'Ошибка загрузки данных');
+            // Если не удалось получить цены, показываем портфель без цен
+            displayMyAssets(container, portfolio);
         }
+        
     } catch (error) {
-        console.error('Ошибка загрузки моих активов:', error);
-        showAssetsEmpty(container, 'Ошибка загрузки данных');
+        console.error('Ошибка загрузки портфеля:', error);
+        showAssetsEmpty(container, 'Ошибка загрузки');
     }
 }
 
@@ -1097,25 +1107,33 @@ function displayMyAssets(container, portfolio) {
     }
 
     container.innerHTML = portfolio.map(asset => {
-        const profitLoss = asset.profitLossPercent || 0;
+        // Расчет прибыли/убытка
+        const totalValue = asset.amount * (asset.currentPrice || 0);
+        const totalCost = asset.amount * asset.avgPrice;
+        const profitLoss = totalValue - totalCost;
+        const profitLossPercent = asset.avgPrice > 0 ? ((asset.currentPrice - asset.avgPrice) / asset.avgPrice) * 100 : 0;
+        
         const changeClass = profitLoss >= 0 ? 'positive' : 'negative';
         const changeIcon = profitLoss >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
         
         return `
-            <div class="asset-item" onclick="openAssetDetails('${asset.coinSymbol}')">
+            <div class="asset-item" onclick="window.location.href='coininfo.html?coin=${asset.coinId}'">
                 <div class="asset-icon">
-                    <img src="${window.CryptoLogos ? window.CryptoLogos.getCoinLogoBySymbol(asset.coinSymbol) : '/logos/default.svg'}" 
-                         alt="${asset.coinName}" 
+                    <img src="${asset.logo || '/logos/default.svg'}" 
+                         alt="${asset.name}" 
                          onerror="this.src='/logos/default.svg'">
                 </div>
                 <div class="asset-info">
-                    <div class="asset-name">${asset.coinName || asset.coinSymbol}</div>
-                    <div class="asset-symbol">${asset.coinSymbol}</div>
-                    <div class="asset-price">${asset.balance ? asset.balance.toFixed(8) : '0'} ${asset.coinSymbol}</div>
+                    <div class="asset-name">${asset.name}</div>
+                    <div class="asset-symbol">${asset.symbol}</div>
+                    <div class="asset-amount">${asset.amount.toFixed(8)} ${asset.symbol}</div>
                 </div>
-                <div class="asset-change ${changeClass}">
-                    <i class="fas ${changeIcon}"></i>
-                    ${profitLoss >= 0 ? '+' : ''}${profitLoss.toFixed(2)}%
+                <div class="asset-value">
+                    <div class="asset-total">$${totalValue.toFixed(2)}</div>
+                    <div class="asset-change ${changeClass}">
+                        <i class="fas ${changeIcon}"></i>
+                        ${profitLoss >= 0 ? '+' : ''}$${profitLoss.toFixed(2)} (${profitLossPercent.toFixed(2)}%)
+                    </div>
                 </div>
             </div>
         `;

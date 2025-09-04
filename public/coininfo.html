@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
     <title>Загрузка... - SellBit</title>
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
-    <link rel="apple-touch-icon" href="icon-192.svg">
+    <link rel="icon" type="image/svg+xml" href="sellbit-logo-icon.svg">
+    <link rel="apple-touch-icon" href="sellbit-logo-icon.svg">
     <meta name="theme-color" content="#0066CC">
     <meta name="msapplication-TileColor" content="#0066CC">
     <link rel="stylesheet" href="coininfo.css">
@@ -44,19 +44,6 @@
         <main class="main-content">
             <!-- Unified Bitcoin Card -->
             <section class="bitcoin-card">
-                <!-- Coin Info Header -->
-                <div class="coin-header">
-                    <div class="coin-info">
-                        <div class="coin-icon">
-                            <img src="/logos/bitcoin.svg" alt="BTC" class="coin-logo" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
-                        </div>
-                        <div class="coin-details">
-                            <h1 class="coin-name">Bitcoin</h1>
-                            <span class="coin-symbol">BTC</span>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Price Display -->
                 <div class="price-display">
                     <div class="current-price">
@@ -68,58 +55,19 @@
                             </span>
                         </div>
                     </div>
+                    <div class="coin-icon-right">
+                        <img src="/logos/bitcoin.svg" alt="BTC" class="coin-logo" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
+                    </div>
                 </div>
 
                 <!-- Chart Section -->
                 <div class="chart-section">
                     <div class="chart-container">
-                        <canvas id="priceChart" width="900" height="500" style="display: block; box-sizing: border-box; height: 250px; width: 450px;"></canvas>
+                        <canvas id="priceChart" width="900" height="500" style="display: block; box-sizing: border-box; height: 180px; width: 100%;"></canvas>
                     </div>
                 </div>
             </section>
 
-            <!-- Balance Card -->
-            <section class="balance-card">
-                <div class="balance-header">
-                    <h3>Ваш баланс</h3>
-                </div>
-                <div class="balance-content">
-                    <div class="balance-item">
-                        <div class="balance-icon">
-                            <img src="/logos/bitcoin.svg" alt="BTC" class="balance-coin-logo" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" onerror="this.src='/logos/default.svg'">
-                        </div>
-                        <div class="balance-details">
-                            <span class="balance-amount">0.00000000 BTC</span>
-                            <span class="balance-usd">$0.00</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Staking Button -->
-            <section class="action-section">
-                <div class="staking-button-container">
-                    <button class="staking-btn" onclick="openStakeModal()">
-                        <div class="staking-btn-content">
-                            <i class="fas fa-chart-line"></i>
-                            <div class="staking-btn-text">
-                                <span class="staking-title">Торговля</span>
-                                <span class="staking-subtitle">Сделка на рост/падение</span>
-                            </div>
-                        </div>
-                        <div class="staking-btn-arrow">
-                            <i class="fas fa-chevron-right"></i>
-                        </div>
-                    </button>
-                </div>
-                <div class="active-stakes-link">
-                    <button class="active-stakes-btn" onclick="openActiveStakesModal()">
-                        <i class="fas fa-clock"></i>
-                        <span>Активные сделки</span>
-                        <span class="stakes-count" id="stakesCount">0</span>
-                    </button>
-                </div>
-            </section>
 
             <!-- About Section -->
             <section class="about-section">
@@ -132,36 +80,47 @@
                 </div>
             </section>
 
+            <!-- Trading Section -->
+            <section class="trading-section">
+                <div class="trading-header">
+                    <h3>Бинарные опционы</h3>
+                    <p>Прогнозируйте направление цены и получите прибыль</p>
+                </div>
+                
+                <div class="binary-options-container">
+                    <button class="binary-option-btn" onclick="openStakeModal()">
+                        <span class="binary-option-title">Открыть опцион</span>
+                    </button>
+                    
+                    <button class="active-deals-btn" onclick="openActiveStakesModal()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" fill="#4A88FF"/>
+                            <path d="M12 6v6l4 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="deals-count" id="stakesCount">0</span>
+                    </button>
+                </div>
+            </section>
+
 
         </main>
 
-        <!-- Bottom Navigation -->
-        <nav class="bottom-nav">
-                            <button class="nav-btn" onclick="window.location.href='home.html'">
-                <i class="fas fa-home"></i>
-                <span>Главная</span>
+        <!-- Fixed Trading Buttons -->
+        <div class="fixed-trading-buttons">
+            <button class="fixed-buy-btn" onclick="openBuyModal()">
+                <span>Купить</span>
             </button>
-                            <button class="nav-btn active" onclick="window.location.href='coins.html'">
-                <i class="fas fa-coins"></i>
-                <span>Монеты</span>
+            <button class="fixed-sell-btn" onclick="openSellModal()">
+                <span>Продать</span>
             </button>
-            <button class="nav-btn" onclick="window.location.href='news.html'">
-                <i class="fas fa-newspaper"></i>
-                <span>Новости</span>
-            </button>
-
-            <button class="nav-btn" onclick="window.location.href='setting.html'">
-                <i class="fas fa-cog"></i>
-                <span>Настройки</span>
-            </button>
-        </nav>
+        </div>
     </div>
 
     <!-- Staking Modal -->
     <div class="modal" id="stakeModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="stakeModalTitle">Торговля - Сделка на рост</h3>
+                <h3 id="stakeModalTitle">Бинарный опцион</h3>
                 <button class="icon-btn" onclick="closeModal('stakeModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -201,7 +160,7 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Время сделки</label>
+                        <label>Время экспирации</label>
                         <div class="time-selector">
                             <div class="time-slider-container">
                                 <input type="range" id="timeSlider" class="time-slider" min="0" max="5" value="0" step="1">
@@ -236,7 +195,7 @@
 
 
 
-                    <button type="submit" class="trade-btn primary" id="stakeSubmitBtn">Создать сделку на рост</button>
+                    <button type="submit" class="trade-btn primary" id="stakeSubmitBtn">Открить опцион</button>
                 </form>
             </div>
         </div>
@@ -246,7 +205,7 @@
     <div class="modal" id="activeStakesModal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Активные сделки</h3>
+                <h3>Активные опционы</h3>
                 <button class="icon-btn" onclick="closeModal('activeStakesModal')">
                     <i class="fas fa-times"></i>
                 </button>
@@ -255,6 +214,95 @@
                 <div id="activeStakesList">
                     <!-- Active stakes will be populated here -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Buy Modal -->
+    <div class="modal" id="buyModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="buyModalTitle">Покупка <span id="buyCoinName">Bitcoin</span></h3>
+                <button class="icon-btn" onclick="closeModal('buyModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Account Balance Display -->
+                <div class="balance-display">
+                    <div class="balance-item">
+                        <span class="balance-label">Баланс аккаунта:</span>
+                        <span class="balance-value" id="buyAccountBalance">$0.00</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Текущая цена:</span>
+                        <span class="balance-value" id="buyCurrentPrice">$0.00</span>
+                    </div>
+                </div>
+
+                <form id="buyForm">
+                    <div class="amount-input-container">
+                        <label class="amount-label">Сумма в USD</label>
+                        <div class="input-with-button">
+                            <input type="number" id="buyAmountUSD" class="amount-input" placeholder="10.00" min="0.01" step="0.01" required>
+                            <button type="button" class="max-btn" onclick="setMaxBuyAmount()">Макс</button>
+                        </div>
+                    </div>
+                    
+                    <div class="calculation-display">
+                        <div class="calc-item">
+                            <span class="calc-label">Количество монет:</span>
+                            <span class="calc-value" id="buyCoinAmount">0.00000000</span>
+                        </div>
+                        <div class="calc-item">
+                            <span class="calc-label">Цена за монету:</span>
+                            <span class="calc-value" id="buyPricePerCoin">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="trade-btn primary" id="buySubmitBtn">Купить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sell Modal -->
+    <div class="modal" id="sellModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="sellModalTitle">Продажа <span id="sellCoinName">Bitcoin</span></h3>
+                <button class="icon-btn" onclick="closeModal('sellModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Portfolio Balance Display -->
+                <div class="balance-display">
+                    <div class="balance-item">
+                        <span class="balance-label">В портфеле:</span>
+                        <span class="balance-value" id="sellPortfolioBalance">0.00000000 BTC</span>
+                    </div>
+                    <div class="balance-item">
+                        <span class="balance-label">Текущая цена:</span>
+                        <span class="balance-value" id="sellCurrentPrice">$0.00</span>
+                    </div>
+                </div>
+
+                <form id="sellForm">
+                    <div class="amount-input-container">
+                        <label class="amount-label">Количество монет</label>
+                        <input type="number" id="sellAmount" class="amount-input" placeholder="0.001" min="0.00000001" step="0.00000001" required>
+                    </div>
+                    
+                    <div class="total-display">
+                        <div class="total-item">
+                            <span class="total-label">Получите:</span>
+                            <span class="total-value" id="sellTotal">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="trade-btn primary" id="sellSubmitBtn">Продать</button>
+                </form>
             </div>
         </div>
     </div>

@@ -91,48 +91,48 @@ const initializeDatabase = () => {
             }
         });
 
-        // Create user_portfolio table for storing user's cryptocurrency holdings
+        // Create portfolio table for storing user's cryptocurrency holdings
         db.run(`
-            CREATE TABLE IF NOT EXISTS user_portfolio (
+            CREATE TABLE IF NOT EXISTS portfolio (
                 id TEXT PRIMARY KEY,
-                userId TEXT NOT NULL,
-                coinSymbol TEXT NOT NULL,
-                coinName TEXT NOT NULL,
-                balance REAL NOT NULL DEFAULT 0,
-                averageBuyPrice REAL NOT NULL DEFAULT 0,
-                totalInvested REAL NOT NULL DEFAULT 0,
-                lastUpdated TEXT NOT NULL,
-                createdAt TEXT NOT NULL,
-                FOREIGN KEY (userId) REFERENCES users (id),
-                UNIQUE(userId, coinSymbol)
+                user_id TEXT NOT NULL,
+                coin_id TEXT NOT NULL,
+                amount REAL NOT NULL DEFAULT 0,
+                avg_price REAL NOT NULL DEFAULT 0,
+                logo TEXT DEFAULT '/logos/default.svg',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id),
+                UNIQUE(user_id, coin_id)
             )
         `, (err) => {
             if (err) {
-                console.error('Error creating user_portfolio table:', err);
+                console.error('Error creating portfolio table:', err);
                 reject(err);
                 return;
             }
         });
 
-        // Create portfolio_transactions table for tracking all portfolio operations
+        // Create transactions table for tracking all operations
         db.run(`
-            CREATE TABLE IF NOT EXISTS portfolio_transactions (
+            CREATE TABLE IF NOT EXISTS transactions (
                 id TEXT PRIMARY KEY,
-                userId TEXT NOT NULL,
-                coinSymbol TEXT NOT NULL,
-                transactionType TEXT NOT NULL,
-                amount REAL NOT NULL,
-                price REAL NOT NULL,
-                totalValue REAL NOT NULL,
+                user_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                coin_id TEXT,
+                amount REAL,
+                price REAL,
+                total_value REAL,
                 fee REAL NOT NULL DEFAULT 0,
-                balance REAL NOT NULL,
+                balance REAL,
                 timestamp TEXT NOT NULL,
                 status TEXT DEFAULT 'completed',
-                FOREIGN KEY (userId) REFERENCES users (id)
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
             )
         `, (err) => {
             if (err) {
-                console.error('Error creating portfolio_transactions table:', err);
+                console.error('Error creating transactions table:', err);
                 reject(err);
                 return;
             }
@@ -217,9 +217,98 @@ const initializeDatabase = () => {
                 reject(err);
                 return;
             }
-            console.log('Database initialized successfully');
-            resolve();
         });
+
+        // Create operation_logs table for trading operations
+        db.run(`
+            CREATE TABLE IF NOT EXISTS operation_logs (
+                id TEXT PRIMARY KEY,
+                user_id TEXT NOT NULL,
+                operation TEXT NOT NULL,
+                data TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'completed',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        `, (err) => {
+            if (err) {
+                console.error('Error creating operation_logs table:', err);
+                reject(err);
+                return;
+            }
+        });
+
+        // Create indexes for performance optimization
+        db.run(`CREATE INDEX IF NOT EXISTS idx_portfolio_user_id ON portfolio(user_id)`, (err) => {
+            if (err) console.error('Error creating portfolio user_id index:', err);
+        });
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_portfolio_coin_id ON portfolio(coin_id)`, (err) => {
+            if (err) console.error('Error creating portfolio coin_id index:', err);
+        });
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_user_id ON transactions(user_id)`, (err) => {
+            if (err) console.error('Error creating transactions user_id index:', err);
+        });
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(type)`, (err) => {
+            if (err) console.error('Error creating transactions type index:', err);
+        });
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_transactions_coin_id ON transactions(coin_id)`, (err) => {
+            if (err) console.error('Error creating transactions coin_id index:', err);
+        });
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_operation_logs_user_id ON operation_logs(user_id)`, (err) => {
+            if (err) console.error('Error creating operation_logs user_id index:', err);
+        });
+
+        db.run(`CREATE INDEX IF NOT EXISTS idx_operation_logs_operation ON operation_logs(operation)`, (err) => {
+            if (err) console.error('Error creating operation_logs operation index:', err);
+        });
+
+        // Create trigger for portfolio updated_at
+        db.run(`
+            CREATE TRIGGER IF NOT EXISTS update_portfolio_timestamp 
+            AFTER UPDATE ON portfolio
+            BEGIN
+                UPDATE portfolio SET updated_at = datetime('now') WHERE id = NEW.id;
+            END
+        `, (err) => {
+            if (err) {
+                console.error('Error creating portfolio trigger:', err);
+                reject(err);
+                return;
+            }
+        });
+
+        // Migration support - Add new columns to existing tables if they don't exist
+        db.run(`ALTER TABLE transactions ADD COLUMN coin_id TEXT`, (err) => {
+            // Ignore error if column already exists
+        });
+
+        db.run(`ALTER TABLE transactions ADD COLUMN amount REAL`, (err) => {
+            // Ignore error if column already exists
+        });
+
+        db.run(`ALTER TABLE transactions ADD COLUMN price REAL`, (err) => {
+            // Ignore error if column already exists
+        });
+
+        db.run(`ALTER TABLE transactions ADD COLUMN total_value REAL`, (err) => {
+            // Ignore error if column already exists
+        });
+
+        db.run(`ALTER TABLE transactions ADD COLUMN created_at TEXT`, (err) => {
+            // Ignore error if column already exists
+        });
+
+        db.run(`ALTER TABLE portfolio ADD COLUMN logo TEXT DEFAULT '/logos/default.svg'`, (err) => {
+            // Ignore error if column already exists
+        });
+
+        console.log('Database initialized successfully');
+        resolve();
     });
 };
 
@@ -1219,6 +1308,169 @@ const closeDatabase = () => {
     });
 };
 
+// Portfolio operations (Updated for new schema)
+const getUserPortfolio = (userId) => {
+    return new Promise((resolve, reject) => {
+        db.all(
+            'SELECT * FROM portfolio WHERE user_id = ?',
+            [userId],
+            (err, rows) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            }
+        );
+    });
+};
+
+const addToPortfolio = (userId, coinId, amount, avgPrice, logo = '/logos/default.svg') => {
+    return new Promise((resolve, reject) => {
+        const timestamp = new Date().toISOString();
+        
+        // Check if coin already exists in portfolio
+        db.get(
+            'SELECT * FROM portfolio WHERE user_id = ? AND coin_id = ?',
+            [userId, coinId],
+            (err, existingCoin) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                if (existingCoin) {
+                    // Update existing coin - recalculate average price
+                    const totalAmount = existingCoin.amount + amount;
+                    const totalCost = (existingCoin.amount * existingCoin.avg_price) + (amount * avgPrice);
+                    const newAvgPrice = totalCost / totalAmount;
+
+                    db.run(
+                        'UPDATE portfolio SET amount = ?, avg_price = ?, updated_at = ? WHERE user_id = ? AND coin_id = ?',
+                        [totalAmount, newAvgPrice, timestamp, userId, coinId],
+                        function(err) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve({ id: existingCoin.id, amount: totalAmount, avgPrice: newAvgPrice });
+                            }
+                        }
+                    );
+                } else {
+                    // Add new coin to portfolio
+                    const id = `portfolio_${userId}_${coinId}_${Date.now()}`;
+                    db.run(
+                        'INSERT INTO portfolio (id, user_id, coin_id, amount, avg_price, logo, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        [id, userId, coinId, amount, avgPrice, logo, timestamp, timestamp],
+                        function(err) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve({ id, amount, avgPrice });
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    });
+};
+
+const removeFromPortfolio = (userId, coinId, amount) => {
+    return new Promise((resolve, reject) => {
+        const timestamp = new Date().toISOString();
+        
+        db.get(
+            'SELECT * FROM portfolio WHERE user_id = ? AND coin_id = ?',
+            [userId, coinId],
+            (err, coin) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                if (!coin) {
+                    reject(new Error('Coin not found in portfolio'));
+                    return;
+                }
+
+                if (coin.amount < amount) {
+                    reject(new Error('Insufficient amount in portfolio'));
+                    return;
+                }
+
+                const newAmount = coin.amount - amount;
+
+                if (newAmount <= 0) {
+                    // Remove coin completely
+                    db.run(
+                        'DELETE FROM portfolio WHERE user_id = ? AND coin_id = ?',
+                        [userId, coinId],
+                        function(err) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve({ id: coin.id, amount: 0, avgPrice: coin.avg_price });
+                            }
+                        }
+                    );
+                } else {
+                    // Update amount
+                    db.run(
+                        'UPDATE portfolio SET amount = ?, updated_at = ? WHERE user_id = ? AND coin_id = ?',
+                        [newAmount, timestamp, userId, coinId],
+                        function(err) {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve({ id: coin.id, amount: newAmount, avgPrice: coin.avg_price });
+                            }
+                        }
+                    );
+                }
+            }
+        );
+    });
+};
+
+// Operation logs (Updated for new schema)
+const logOperation = (operationData) => {
+    return new Promise((resolve, reject) => {
+        const id = `op_${operationData.userId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const data = JSON.stringify({
+            coin_id: operationData.coin_id,
+            amount: operationData.amount,
+            price: operationData.price,
+            total_value: operationData.total_value,
+            balance_before: operationData.balance_before,
+            balance_after: operationData.balance_after,
+            portfolio_before: operationData.portfolio_before,
+            portfolio_after: operationData.portfolio_after,
+            ip_address: operationData.ip_address,
+            user_agent: operationData.user_agent
+        });
+        
+        db.run(
+            'INSERT INTO operation_logs (id, user_id, operation, data, status, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            [
+                id,
+                operationData.userId,
+                operationData.operation_type,
+                data,
+                'completed',
+                operationData.created_at
+            ],
+            function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(id);
+                }
+            }
+        );
+    });
+};
+
 module.exports = {
     initializeDatabase,
     createUser,
@@ -1269,5 +1521,7 @@ module.exports = {
     addPortfolioTransaction,
     getPortfolioTransactions,
     getPortfolioValue,
+    // Operation logs
+    logOperation,
     closeDatabase
 };

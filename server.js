@@ -61,6 +61,27 @@ const broadcastUpdate = (type, data) => {
   }
 };
 
+// Broadcast to specific user (for portfolio updates)
+const broadcastToUser = (userId, type, data) => {
+  const message = JSON.stringify({ type, data, timestamp: Date.now() });
+  let sentCount = 0;
+  
+  wsConnections.forEach((ws) => {
+    if (ws.readyState === WebSocket.OPEN && ws.userId === userId) {
+      try {
+        ws.send(message);
+        sentCount++;
+      } catch (error) {
+        console.error('Error sending WebSocket message to user:', error);
+      }
+    }
+  });
+  
+  if (sentCount > 0) {
+    console.log(`Broadcasted ${type} to user ${userId}`);
+  }
+};
+
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -768,6 +789,79 @@ const validateRegistration = [
 const validateLogin = [
   body('email').isEmail().normalizeEmail().withMessage('Введите корректный email'),
   body('password').notEmpty().withMessage('Введите пароль')
+];
+
+// Rate limiting for trading operations
+const rateLimitMap = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per minute
+
+const rateLimitMiddleware = (req, res, next) => {
+  const userId = req.user?.userId || req.ip;
+  const now = Date.now();
+  
+  if (!rateLimitMap.has(userId)) {
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+  
+  const userLimit = rateLimitMap.get(userId);
+  
+  if (now > userLimit.resetTime) {
+    // Reset the counter
+    rateLimitMap.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return next();
+  }
+  
+  if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return res.status(429).json({
+      success: false,
+      error: 'Too many requests. Please try again later.'
+    });
+  }
+  
+  userLimit.count++;
+  next();
+};
+
+// Authentication middleware
+const authenticateToken = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Access token required'
+      });
+    }
+
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      error: 'Invalid or expired token'
+    });
+  }
+};
+
+// Validation middleware for trading operations
+const validateTradingOperation = [
+  body('coinId').notEmpty().withMessage('Coin ID is required'),
+  body('amount').isFloat({ min: 0.00000001 }).withMessage('Amount must be greater than 0.00000001'),
+  body('price').isFloat({ min: 0 }).withMessage('Price must be greater than 0'),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: errors.array()
+      });
+    }
+    next();
+  }
 ];
 
 // Routes
@@ -2599,6 +2693,305 @@ app.get('/api/users/:userId/portfolio/transactions', async (req, res) => {
     res.status(500).json({
       success: false,
       errors: ['Ошибка сервера при получении транзакций']
+    });
+  }
+});
+
+// ===== PORTFOLIO ENDPOINTS =====
+
+// Get user portfolio
+app.get('/api/users/:id/portfolio', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.userId;
+
+    // Check if user is accessing their own portfolio or has admin rights
+    if (id !== userId && !req.user.roles?.includes('Админ')) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied'
+      });
+    }
+
+    const portfolio = await db.getUserPortfolio(id);
+    
+    res.json({
+      success: true,
+      portfolio: portfolio
+    });
+
+  } catch (error) {
+    console.error('Get portfolio error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error while fetching portfolio'
+    });
+  }
+});
+
+// Buy coins
+app.post('/api/users/:id/portfolio/buy', authenticateToken, rateLimitMiddleware, validateTradingOperation, async (req, res) => {
+  const { id } = req.params;
+  const { coinId, amount, price } = req.body;
+  const userId = req.user.userId;
+
+  // Check if user is accessing their own portfolio
+  if (id !== userId) {
+    return res.status(403).json({
+      success: false,
+      error: 'Access denied'
+    });
+  }
+
+  try {
+    // Start database transaction
+    await new Promise((resolve, reject) => {
+      db.run('BEGIN TRANSACTION', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Get current user balance
+    const account = await db.getAccountByUserId(userId);
+    if (!account) {
+      await new Promise((resolve, reject) => {
+        db.run('ROLLBACK', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      return res.status(404).json({
+        success: false,
+        error: 'Account not found'
+      });
+    }
+
+    const currentBalance = account.balance.USD || 0;
+    const totalCost = amount * price;
+
+    // Validate balance
+    if (currentBalance < totalCost) {
+      await new Promise((resolve, reject) => {
+        db.run('ROLLBACK', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      return res.status(400).json({
+        success: false,
+        error: 'Insufficient balance'
+      });
+    }
+
+    // Get current portfolio for logging
+    const portfolioBefore = await db.getUserPortfolio(userId);
+
+    // Update balance
+    const newBalance = currentBalance - totalCost;
+    await db.updateAccount(userId, { USD: newBalance });
+
+    // Get coin information for logo
+    const coinInfo = await db.getCoinById(coinId);
+    const logo = coinInfo ? coinInfo.logo || '/logos/default.svg' : '/logos/default.svg';
+    
+    // Add to portfolio
+    await db.addToPortfolio(userId, coinId, amount, price, logo);
+
+    // Get updated portfolio for logging
+    const portfolioAfter = await db.getUserPortfolio(userId);
+
+    // Log operation
+    await db.logOperation({
+      userId,
+      operation_type: 'buy',
+      coin_id: coinId,
+      amount,
+      price,
+      total_value: totalCost,
+      balance_before: currentBalance,
+      balance_after: newBalance,
+      portfolio_before: JSON.stringify(portfolioBefore),
+      portfolio_after: JSON.stringify(portfolioAfter),
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent'),
+      created_at: new Date().toISOString()
+    });
+
+    // Commit transaction
+    await new Promise((resolve, reject) => {
+      db.run('COMMIT', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Broadcast portfolio update to specific user
+    broadcastToUser(userId, 'portfolio_update', {
+      userId,
+      type: 'buy',
+      coinId,
+      amount,
+      newBalance,
+      portfolio: portfolioAfter
+    });
+
+    res.json({
+      success: true,
+      message: 'Purchase completed successfully',
+      newBalance,
+      portfolio: portfolioAfter
+    });
+
+  } catch (error) {
+    // Rollback transaction on error
+    try {
+      await new Promise((resolve, reject) => {
+        db.run('ROLLBACK', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    } catch (rollbackError) {
+      console.error('Rollback error:', rollbackError);
+    }
+
+    console.error('Buy operation error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error during purchase'
+    });
+  }
+});
+
+// Sell coins
+app.post('/api/users/:id/portfolio/sell', authenticateToken, rateLimitMiddleware, validateTradingOperation, async (req, res) => {
+  const { id } = req.params;
+  const { coinId, amount, price } = req.body;
+  const userId = req.user.userId;
+
+  // Check if user is accessing their own portfolio
+  if (id !== userId) {
+    return res.status(403).json({
+      success: false,
+      error: 'Access denied'
+    });
+  }
+
+  try {
+    // Start database transaction
+    await new Promise((resolve, reject) => {
+      db.run('BEGIN TRANSACTION', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Get current user balance
+    const account = await db.getAccountByUserId(userId);
+    if (!account) {
+      await new Promise((resolve, reject) => {
+        db.run('ROLLBACK', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+      return res.status(404).json({
+        success: false,
+        error: 'Account not found'
+      });
+    }
+
+    const currentBalance = account.balance.USD || 0;
+    const totalValue = amount * price;
+
+    // Get current portfolio for logging
+    const portfolioBefore = await db.getUserPortfolio(userId);
+
+    // Remove from portfolio
+    await db.removeFromPortfolio(userId, coinId, amount);
+
+    // Update balance
+    const newBalance = currentBalance + totalValue;
+    await db.updateAccount(userId, { USD: newBalance });
+
+    // Get updated portfolio for logging
+    const portfolioAfter = await db.getUserPortfolio(userId);
+
+    // Log operation
+    await db.logOperation({
+      userId,
+      operation_type: 'sell',
+      coin_id: coinId,
+      amount,
+      price,
+      total_value: totalValue,
+      balance_before: currentBalance,
+      balance_after: newBalance,
+      portfolio_before: JSON.stringify(portfolioBefore),
+      portfolio_after: JSON.stringify(portfolioAfter),
+      ip_address: req.ip,
+      user_agent: req.get('User-Agent'),
+      created_at: new Date().toISOString()
+    });
+
+    // Commit transaction
+    await new Promise((resolve, reject) => {
+      db.run('COMMIT', (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    // Broadcast portfolio update to specific user
+    broadcastToUser(userId, 'portfolio_update', {
+      userId,
+      type: 'sell',
+      coinId,
+      amount,
+      newBalance,
+      portfolio: portfolioAfter
+    });
+
+    res.json({
+      success: true,
+      message: 'Sale completed successfully',
+      newBalance,
+      portfolio: portfolioAfter
+    });
+
+  } catch (error) {
+    // Rollback transaction on error
+    try {
+      await new Promise((resolve, reject) => {
+        db.run('ROLLBACK', (err) => {
+          if (err) reject(err);
+          else resolve();
+        });
+      });
+    } catch (rollbackError) {
+      console.error('Rollback error:', rollbackError);
+    }
+
+    console.error('Sell operation error:', error);
+    
+    if (error.message === 'Coin not found in portfolio') {
+      return res.status(400).json({
+        success: false,
+        error: 'Coin not found in portfolio'
+      });
+    }
+    
+    if (error.message === 'Insufficient amount in portfolio') {
+      return res.status(400).json({
+        success: false,
+        error: 'Insufficient amount in portfolio'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      error: 'Server error during sale'
     });
   }
 });

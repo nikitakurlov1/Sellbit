@@ -121,7 +121,7 @@ body {
 
 /* Main Content */
 .main-content {
-    padding: 80px 20px 100px 20px;
+    padding: 80px 20px 80px 20px;
     max-width: 100%;
     overflow-x: hidden;
     box-sizing: border-box;
@@ -131,15 +131,102 @@ body {
 .bitcoin-card {
     background: #ffffff;
     border: 1px solid #E5E5E7;
-    border-radius: 20px;
-    margin-bottom: 24px;
+    border-radius: 16px;
+    margin-bottom: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Combined Balance and Coin Info Header */
+.balance-coin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #F2F2F7;
+}
+
+.balance-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.balance-amount {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000000;
+    line-height: 1.2;
+}
+
+.balance-usd {
+    font-size: 14px;
+    font-weight: 400;
+    color: #8E8E93;
+    line-height: 1.2;
+}
+
+.coin-info-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.coin-info-right .coin-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.coin-info-right .coin-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    text-align: right;
+}
+
+.coin-info-right .coin-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.coin-info-right .coin-symbol {
+    font-size: 12px;
+    font-weight: 400;
+    color: #8E8E93;
+    line-height: 1.2;
+}
+
+/* Coin Header */
+.coin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #F2F2F7;
+}
+
+.coin-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.coin-icon-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Price Display */
 .price-display {
-    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
     border-bottom: 1px solid #F2F2F7;
 }
 
@@ -212,8 +299,8 @@ body {
 }
 
 .price-amount {
-    font-size: 36px;
-    font-weight: 800;
+    font-size: 24px;
+    font-weight: 700;
     color: #000000;
     line-height: 1.1;
 }
@@ -256,15 +343,15 @@ body {
 
 /* Chart Section */
 .chart-section {
-    padding: 20px;
+    padding: 12px;
 }
 
 .chart-container {
     background: #ffffff;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 0;
-    height: 280px;
+    height: 200px;
     position: relative;
     width: 100%;
     display: flex;
@@ -373,17 +460,45 @@ body {
 }
 
 /* Staking Section */
-.action-section {
-    margin-bottom: 24px;
-    padding: 0 20px;
+.trading-section {
+    background: #ffffff;
+    border: 1px solid #E5E5E7;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    padding: 16px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
 }
 
-.staking-button-container {
+.trading-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #F2F2F7;
+}
+
+.trading-header h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #000000;
+    margin: 0 0 8px 0;
+}
+
+.trading-header p {
+    font-size: 14px;
+    color: #8E8E93;
+    margin: 0;
+    font-weight: 500;
+}
+
+.binary-options-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 12px;
 }
 
-.staking-btn {
-    width: 100%;
+.binary-option-btn {
+    flex: 1;
     background: linear-gradient(135deg, #4A88FF 0%, #6B9EFF 100%);
     border: none;
     border-radius: 16px;
@@ -397,6 +512,40 @@ body {
     box-shadow: 0 4px 16px rgba(74, 136, 255, 0.3);
     position: relative;
     overflow: hidden;
+}
+
+.active-deals-btn {
+    width: 48px;
+    height: 48px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.active-deals-btn:hover {
+    transform: scale(1.1);
+}
+
+.deals-count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #FF3B30;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
 }
 
 .staking-btn::before {
@@ -424,37 +573,37 @@ body {
     box-shadow: 0 4px 16px rgba(74, 136, 255, 0.3);
 }
 
-.staking-btn-content {
+.binary-option-content {
     display: flex;
     align-items: center;
     gap: 16px;
 }
 
-.staking-btn i {
+.binary-option-btn i {
     font-size: 24px;
     color: #ffffff;
 }
 
-.staking-btn-text {
+.binary-option-text {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
 }
 
-.staking-title {
+.binary-option-title {
     font-size: 18px;
     font-weight: 700;
     color: #ffffff;
 }
 
-.staking-subtitle {
+.binary-option-subtitle {
     font-size: 14px;
     color: rgba(255, 255, 255, 0.8);
     font-weight: 500;
 }
 
-.staking-btn-arrow {
+.binary-option-arrow {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -465,12 +614,12 @@ body {
     transition: all 0.3s ease;
 }
 
-.staking-btn:hover .staking-btn-arrow {
+.binary-option-btn:hover .binary-option-arrow {
     background: rgba(255, 255, 255, 0.3);
     transform: scale(1.1);
 }
 
-.staking-btn-arrow i {
+.binary-option-arrow i {
     font-size: 14px;
     color: #ffffff;
 }
@@ -634,49 +783,52 @@ body {
 }
 
 /* Bottom Navigation */
-.bottom-nav {
+.fixed-trading-buttons {
     position: fixed;
     bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
     width: 100%;
-    max-width: 414px;
     background: #ffffff;
     border-top: 1px solid #E5E5E7;
     display: flex;
-    justify-content: space-around;
-    padding: 8px 0;
+    gap: 8px;
+    padding: 8px 16px;
     z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.nav-btn {
-    background: transparent;
-    border: none;
-    color: #8E8E93;
-    padding: 8px 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    font-weight: 500;
+.fixed-buy-btn {
     flex: 1;
-    max-width: 70px;
+    background: #34C759;
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
-.nav-btn:hover {
-    background: #F2F2F7;
+.fixed-buy-btn:hover {
+    background: #30B050;
 }
 
-.nav-btn.active {
-    color: #4A88FF;
+.fixed-sell-btn {
+    flex: 1;
+    background: #FF3B30;
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    padding: 12px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
 }
 
-.nav-btn i {
-    font-size: 18px;
+.fixed-sell-btn:hover {
+    background: #E6342A;
 }
 
 /* Modal Styles */
@@ -1388,7 +1540,7 @@ select.form-input:focus {
 /* Responsive Design */
 @media (max-width: 414px) {
     .main-content {
-        padding: 70px 16px 100px 16px;
+        padding: 70px 16px 80px 16px;
     }
 
     .header {
@@ -1397,6 +1549,26 @@ select.form-input:focus {
 
     .bitcoin-card {
         margin-bottom: 20px;
+    }
+
+    .balance-coin-header {
+        padding: 16px;
+    }
+
+    .balance-amount {
+        font-size: 16px;
+    }
+
+    .balance-usd {
+        font-size: 13px;
+    }
+
+    .coin-info-right .coin-name {
+        font-size: 15px;
+    }
+
+    .coin-info-right .coin-symbol {
+        font-size: 11px;
     }
 
     .coin-header {
@@ -1638,4 +1810,221 @@ select.form-input:focus {
     margin-top: 8px;
     text-align: center;
     font-style: italic;
+}
+
+/* ===== TRADING BUTTONS STYLES ===== */
+
+.trading-buttons-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.trading-btn {
+    flex: 1;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 16px;
+    padding: 16px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.trading-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.trading-btn.buy-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+.trading-btn.buy-btn:hover {
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+}
+
+.trading-btn.sell-btn {
+    background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+}
+
+.trading-btn.sell-btn:hover {
+    box-shadow: 0 8px 25px rgba(244, 67, 54, 0.3);
+}
+
+.trading-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.trading-btn-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.trading-title {
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.trading-subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* ===== TRADING MODALS STYLES ===== */
+
+.balance-display {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.balance-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.balance-item:last-child {
+    margin-bottom: 0;
+}
+
+.balance-label {
+    font-size: 14px;
+    color: #666;
+}
+
+.balance-value {
+    font-weight: 600;
+    font-size: 16px;
+    color: #333;
+}
+
+.total-display {
+    background: #e3f2fd;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+}
+
+.total-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Input with Button Styles */
+.input-with-button {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.input-with-button .amount-input {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.max-btn {
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    min-width: 60px;
+}
+
+.max-btn:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.max-btn:active {
+    transform: translateY(0);
+    background: #004085;
+}
+
+/* Calculation Display Styles */
+.calculation-display {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    border: 1px solid #e9ecef;
+}
+
+.calc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.calc-item:last-child {
+    margin-bottom: 0;
+}
+
+.calc-label {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.calc-value {
+    font-size: 14px;
+    color: #000000;
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.total-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: #1976d2;
+}
+
+.total-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1976d2;
+}
+
+/* ===== TRANSACTION STYLES ===== */
+
+.transaction-buy {
+    border-left: 4px solid #4CAF50;
+}
+
+.transaction-sell {
+    border-left: 4px solid #f44336;
+}
+
+.transaction-icon.buy {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+.transaction-icon.sell {
+    background: linear-gradient(135deg, #f44336 0%, #da190b 100%);
+}
+
+.transaction-amount.positive {
+    color: #4CAF50;
+}
+
+.transaction-amount.negative {
+    color: #f44336;
 }

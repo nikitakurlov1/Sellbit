@@ -47,7 +47,26 @@ class HistoryPage {
         // Загружаем все типы транзакций из localStorage
         this.transactions = [];
         
-        // Покупки
+        // Транзакции покупки/продажи из нового формата
+        const transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+        transactions.forEach(transaction => {
+            if (transaction.type === 'buy' || transaction.type === 'sell') {
+                this.transactions.push({
+                    id: transaction.id,
+                    type: transaction.type,
+                    title: transaction.type === 'buy' ? `Покупка ${transaction.coinName}` : `Продажа ${transaction.coinName}`,
+                    amount: Math.abs(transaction.amount),
+                    currency: 'USD',
+                    date: transaction.date,
+                    status: 'completed',
+                    details: `${transaction.coinAmount} ${transaction.coinName}`,
+                    icon: transaction.type === 'buy' ? 'fas fa-arrow-up' : 'fas fa-arrow-down',
+                    price: transaction.price
+                });
+            }
+        });
+
+        // Покупки (старый формат)
         const purchases = JSON.parse(localStorage.getItem('purchases')) || [];
         purchases.forEach(purchase => {
             this.transactions.push({
@@ -63,7 +82,7 @@ class HistoryPage {
             });
         });
 
-        // Продажи
+        // Продажи (старый формат)
         const sales = JSON.parse(localStorage.getItem('sales')) || [];
         sales.forEach(sale => {
             this.transactions.push({
@@ -272,8 +291,32 @@ class HistoryPage {
         const element = document.createElement('div');
         element.className = 'transaction-item';
         
-        // Специальное отображение для ставок
-        if (transaction.type === 'stake') {
+        // Специальное отображение для покупки/продажи
+        if (transaction.type === 'buy' || transaction.type === 'sell') {
+            const amountClass = transaction.type === 'buy' ? 'negative' : 'positive';
+            const amountSign = transaction.type === 'buy' ? '-' : '+';
+            
+            element.innerHTML = `
+                <div class="transaction-icon ${transaction.type}">
+                    <i class="${transaction.icon}"></i>
+                </div>
+                <div class="transaction-info">
+                    <div class="transaction-title">${transaction.title}</div>
+                    <div class="transaction-details">
+                        <span>${transaction.details}</span>
+                        <span>•</span>
+                        <span>${this.formatDate(transaction.date)}</span>
+                        ${transaction.price ? `<span>•</span><span>$${transaction.price.toFixed(2)}</span>` : ''}
+                    </div>
+                    <div class="transaction-status completed">
+                        Завершено
+                    </div>
+                </div>
+                <div class="transaction-amount ${amountClass}">
+                    ${amountSign}$${transaction.amount.toFixed(2)}
+                </div>
+            `;
+        } else if (transaction.type === 'stake') {
             const statusClass = transaction.isActive ? 'active' : (transaction.result === 'win' ? 'win' : 'loss');
             const statusText = transaction.isActive ? 'Активна' : (transaction.result === 'win' ? 'Победа' : 'Проигрыш');
             const profitText = transaction.isActive ? 'В процессе' : 

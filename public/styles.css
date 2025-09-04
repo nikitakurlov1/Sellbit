@@ -292,35 +292,35 @@ body {
     color: #3A78EF;
 }
 
-/* Assets List */
+/* Assets List - Minimalist Mobile Design */
 .assets-list {
     display: flex;
     flex-direction: column;
-    background: #ffffff;
+    background: transparent;
+    gap: 1px;
 }
 
 .asset-item {
     background: #ffffff;
-    padding: 8px 12px;
+    padding: 6px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     cursor: pointer;
-    border-bottom: 1px solid #E5E5E7;
-    border-radius: 4px;
-    margin-bottom: 2px;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    min-height: 48px;
+    transition: background-color 0.15s ease;
 }
 
 .asset-item:hover {
     background: #f8f9fa;
 }
 
-/* Специальные стили для топ активов (без цен) */
-.assets-list .asset-item {
-    justify-content: flex-start;
+.asset-item:active {
+    background: #f0f0f0;
 }
-
-
 
 .asset-item:last-child {
     border-bottom: none;
@@ -329,19 +329,20 @@ body {
 .asset-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    flex: 1;
 }
 
 .asset-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
     overflow: hidden;
-    border: none;
+    background: #F2F2F7;
+    flex-shrink: 0;
 }
 
 .asset-icon img {
@@ -351,72 +352,75 @@ body {
     border-radius: 50%;
 }
 
-
-
 .asset-details {
     display: flex;
     flex-direction: column;
+    flex: 1;
 }
 
 .asset-name {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 500;
     color: #000000;
-    margin-bottom: 1px;
+    margin-bottom: 0;
+    line-height: 1.2;
 }
 
 .asset-symbol {
-    font-size: 11px;
-    color: #8e8e93;
-    margin-bottom: 2px;
+    font-size: 12px;
+    color: #8E8E93;
+    margin-bottom: 0;
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    font-weight: 400;
 }
 
 .asset-balance {
-    font-size: 14px;
-    font-weight: 500;
-    color: #000000;
-    margin-bottom: 2px;
+    font-size: 11px;
+    color: #8E8E93;
+    margin-top: 1px;
 }
 
 .asset-values {
     text-align: right;
-}
-
-/* Показываем цены для топ активов */
-.assets-list .asset-values {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 4px;
+    gap: 2px;
 }
 
 .asset-price {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: #000000;
-    margin-bottom: 2px;
+    margin-bottom: 0;
+    line-height: 1.2;
 }
 
 .asset-change {
     font-size: 11px;
     font-weight: 500;
     padding: 2px 6px;
-    border-radius: 4px;
+    border-radius: 6px;
     display: inline-flex;
     align-items: center;
     gap: 2px;
+    min-width: 60px;
+    justify-content: center;
 }
 
 .asset-change.positive {
-    color: #00C853;
-    background: rgba(0, 200, 83, 0.1);
+    color: #34C759;
+    background: rgba(52, 199, 89, 0.08);
 }
 
 .asset-change.negative {
-    color: #FF453A;
-    background: rgba(255, 69, 58, 0.1);
+    color: #FF3B30;
+    background: rgba(255, 59, 48, 0.08);
+}
+
+.asset-change i {
+    font-size: 9px;
 }
 
 /* Transactions Section */
@@ -1904,18 +1908,19 @@ body {
     }
     
     .assets-list {
-        gap: 6px;
+        gap: 1px;
     }
     
     .asset-item {
-        padding: 10px 14px;
-        border-radius: 14px;
+        padding: 6px 16px;
+        border-radius: 0;
+        min-height: 44px;
     }
     
     .asset-icon {
-        width: 32px;
-        height: 32px;
-        margin-right: 10px;
+        width: 26px;
+        height: 26px;
+        margin-right: 8px;
     }
     
     .asset-name {
@@ -1927,16 +1932,165 @@ body {
     }
     
     .asset-price {
-        font-size: 12px;
+        font-size: 13px;
     }
     
     .asset-change {
-        font-size: 11px;
-        padding: 3px 6px;
-        min-width: 55px;
+        font-size: 10px;
+        padding: 1px 4px;
+        min-width: 50px;
     }
     
     .transactions-section {
         margin-bottom: 50px; /* Extra margin for mobile */
+    }
+}
+
+/* ===== PORTFOLIO STYLES - Minimalist ===== */
+
+.asset-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: white;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+    box-shadow: none;
+    min-height: 56px;
+}
+
+.asset-item:hover {
+    background: #f8f9fa;
+    transform: none;
+    box-shadow: none;
+}
+
+.asset-item:active {
+    background: #f0f0f0;
+}
+
+.asset-icon {
+    width: 32px;
+    height: 32px;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.asset-icon img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.asset-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.asset-name {
+    font-weight: 500;
+    font-size: 15px;
+    color: #000000;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+.asset-symbol {
+    font-size: 12px;
+    color: #8E8E93;
+    margin-bottom: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 400;
+}
+
+.asset-amount {
+    font-size: 11px;
+    color: #8E8E93;
+    margin-top: 1px;
+}
+
+.asset-value {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.asset-total {
+    font-weight: 600;
+    font-size: 15px;
+    color: #000000;
+    margin-bottom: 0;
+    line-height: 1.2;
+}
+
+.asset-change {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    min-width: 60px;
+    justify-content: center;
+}
+
+.asset-change.positive {
+    color: #34C759;
+    background: rgba(52, 199, 89, 0.08);
+}
+
+.asset-change.negative {
+    color: #FF3B30;
+    background: rgba(255, 59, 48, 0.08);
+}
+
+.asset-change i {
+    font-size: 9px;
+}
+
+/* Mobile styles for portfolio */
+@media (max-width: 768px) {
+    .asset-item {
+        padding: 6px 16px;
+        margin-bottom: 0;
+        min-height: 48px;
+    }
+    
+    .asset-icon {
+        width: 28px;
+        height: 28px;
+        margin-right: 10px;
+    }
+    
+    .asset-name {
+        font-size: 14px;
+    }
+    
+    .asset-symbol {
+        font-size: 11px;
+    }
+    
+    .asset-amount {
+        font-size: 10px;
+    }
+    
+    .asset-total {
+        font-size: 14px;
+    }
+    
+    .asset-change {
+        font-size: 10px;
+        padding: 1px 4px;
+        min-width: 50px;
     }
 }
